@@ -2,7 +2,7 @@
  * Copyright (c) 1999, Carl Anderson
  *
  * This code is based in part on the earlier work of Frank Warmerdam
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -24,7 +24,7 @@
  *
  * requires shapelib 1.2
  *   gcc shpinfoj shpopen.o -o shpinfo
- * 
+ *
  *
  * $Log$
  * Revision 1.5  2016-12-05 12:44:07  erouault
@@ -83,7 +83,7 @@ int main( int argc, char ** argv )
     }
 
     SHPGetInfo( hSHP, &nEntities, &nShapeType, adfBndsMin, adfBndsMax );
-    
+
     switch ( nShapeType ) {
        case SHPT_POINT:
 		strcpy(sType,"Point");

@@ -35,9 +35,9 @@
  * updates to shpdxf, dbfinfo, port from Shapelib 1.1.5 of dbfcat and shpinfo
  *
  *
- * 
+ *
  */
-      
+
 #include <stdlib.h>
 #include "shapefil.h"
 #include "shpgeo.h"
@@ -69,7 +69,7 @@ int main( int argc, char ** argv )
 	printf( "shpdata shp_file \n" );
 	exit( 1 );
     }
-    
+
     old_SHP = SHPOpen (argv[1], "rb" );
     old_DBF = DBFOpen (argv[1], "rb");
     if( old_SHP == NULL || old_DBF == NULL )
@@ -93,24 +93,24 @@ int main( int argc, char ** argv )
           for ( ring = (psCShape->nParts - 1); ring >= 0; ring-- ) {
 	    SHPObject 	*psO;
 	    int		j, numVtx, rStart;
-            
+
             rStart = psCShape->panPartStart[ring];
             if ( ring == (psCShape->nParts -1) )
               { numVtx = psCShape->nVertices - rStart; }
              else
               { numVtx = psCShape->panPartStart[ring+1] - rStart; }
-              
-            printf ("(shpdata) Ring(%d) (%d for %d) \n", ring, rStart, numVtx);              
+
+            printf ("(shpdata) Ring(%d) (%d for %d) \n", ring, rStart, numVtx);
 	    psO = SHPClone ( psCShape, ring,  ring + 1 );
 
             ringDir = SHPRingDir_2d ( psO, 0 );
             ringArea = RingArea_2d (psO->nVertices,(double*) psO->padfX,
             	 (double*) psO->padfY);
-            RingCentroid_2d ( psO->nVertices, (double*) psO->padfX, 
-     		(double*) psO->padfY, &ringCentrd, &ringArea);  
+            RingCentroid_2d ( psO->nVertices, (double*) psO->padfX,
+     		(double*) psO->padfY, &ringCentrd, &ringArea);
 
-            	 
-            printf ("(shpdata)  Ring %d, %f Area %d dir \n", 
+
+            printf ("(shpdata)  Ring %d, %f Area %d dir \n",
            	ring, ringArea, ringDir );
 
 	    SHPDestroyObject ( psO );
@@ -120,7 +120,7 @@ int main( int argc, char ** argv )
           }  /* by ring   */
 
 	   oArea = SHPArea_2d ( psCShape );
-	   oLen = SHPLength_2d ( psCShape ); 
+	   oLen = SHPLength_2d ( psCShape );
 	   oCentrd = SHPCentrd_2d ( psCShape );
            printf ("(shpdata) Part (%d) %f Area  %f length, C (%f,%f)\n",
            	 i, oArea, oLen, oCentrd.x, oCentrd.y );
