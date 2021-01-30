@@ -13,7 +13,7 @@
  * option is discussed in more detail in shapelib.html.
  *
  * --
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -65,69 +65,64 @@
  *
  */
 
-#include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "shapefil.h"
 
 SHP_CVSID("$Id$")
 
-int main( int argc, char ** argv )
+int main(int argc, char **argv)
 
 {
-    DBFHandle	hDBF;
-    int		i, iRecord;
+  DBFHandle hDBF;
+  int i, iRecord;
 
-/* -------------------------------------------------------------------- */
-/*      Display a usage message.                                        */
-/* -------------------------------------------------------------------- */
-    if( argc < 3 )
-    {
-	printf( "dbfadd xbase_file field_values\n" );
+  /* -------------------------------------------------------------------- */
+  /*      Display a usage message.                                        */
+  /* -------------------------------------------------------------------- */
+  if (argc < 3) {
+    printf("dbfadd xbase_file field_values\n");
 
-	exit( 1 );
-    }
+    exit(1);
+  }
 
-/* -------------------------------------------------------------------- */
-/*	Create the database.						*/
-/* -------------------------------------------------------------------- */
-    hDBF = DBFOpen( argv[1], "r+b" );
-    if( hDBF == NULL )
-    {
-	printf( "DBFOpen(%s,\"rb+\") failed.\n", argv[1] );
-	exit( 2 );
-    }
-    
-/* -------------------------------------------------------------------- */
-/*	Do we have the correct number of arguments?			*/
-/* -------------------------------------------------------------------- */
-    if( DBFGetFieldCount( hDBF ) != argc - 2 )
-    {
-	printf( "Got %d fields, but require %d\n",
-	        argc - 2, DBFGetFieldCount( hDBF ) );
-	exit( 3 );
-    }
+  /* -------------------------------------------------------------------- */
+  /*	Create the database.						*/
+  /* -------------------------------------------------------------------- */
+  hDBF = DBFOpen(argv[1], "r+b");
+  if (hDBF == NULL) {
+    printf("DBFOpen(%s,\"rb+\") failed.\n", argv[1]);
+    exit(2);
+  }
 
-    iRecord = DBFGetRecordCount( hDBF );
+  /* -------------------------------------------------------------------- */
+  /*	Do we have the correct number of arguments?			*/
+  /* -------------------------------------------------------------------- */
+  if (DBFGetFieldCount(hDBF) != argc - 2) {
+    printf("Got %d fields, but require %d\n", argc - 2, DBFGetFieldCount(hDBF));
+    exit(3);
+  }
 
-/* -------------------------------------------------------------------- */
-/*	Loop assigning the new field values.				*/
-/* -------------------------------------------------------------------- */
-    for( i = 0; i < DBFGetFieldCount(hDBF); i++ )
-    {
-        if( strcmp( argv[i+2], "" ) == 0 )
-            DBFWriteNULLAttribute(hDBF, iRecord, i );
-	else if( DBFGetFieldInfo( hDBF, i, NULL, NULL, NULL ) == FTString )
-	    DBFWriteStringAttribute(hDBF, iRecord, i, argv[i+2] );
-	else
-	    DBFWriteDoubleAttribute(hDBF, iRecord, i, atof(argv[i+2]) );
-    }
+  iRecord = DBFGetRecordCount(hDBF);
 
-/* -------------------------------------------------------------------- */
-/*      Close and cleanup.                                              */
-/* -------------------------------------------------------------------- */
-    DBFClose( hDBF );
+  /* -------------------------------------------------------------------- */
+  /*	Loop assigning the new field values.				*/
+  /* -------------------------------------------------------------------- */
+  for (i = 0; i < DBFGetFieldCount(hDBF); i++) {
+    if (strcmp(argv[i + 2], "") == 0)
+      DBFWriteNULLAttribute(hDBF, iRecord, i);
+    else if (DBFGetFieldInfo(hDBF, i, NULL, NULL, NULL) == FTString)
+      DBFWriteStringAttribute(hDBF, iRecord, i, argv[i + 2]);
+    else
+      DBFWriteDoubleAttribute(hDBF, iRecord, i, atof(argv[i + 2]));
+  }
 
-    return( 0 );
+  /* -------------------------------------------------------------------- */
+  /*      Close and cleanup.                                              */
+  /* -------------------------------------------------------------------- */
+  DBFClose(hDBF);
+
+  return (0);
 }

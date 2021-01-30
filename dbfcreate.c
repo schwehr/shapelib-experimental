@@ -13,7 +13,7 @@
  * option is discussed in more detail in shapelib.html.
  *
  * --
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -59,73 +59,64 @@
  *
  */
 
+#include "shapefil.h"
 #include <stdlib.h>
 #include <string.h>
-#include "shapefil.h"
 
 SHP_CVSID("$Id$")
 
-int main( int argc, char ** argv )
+int main(int argc, char **argv)
 
 {
-    DBFHandle	hDBF;
-    int		i;
+  DBFHandle hDBF;
+  int i;
 
-/* -------------------------------------------------------------------- */
-/*      Display a usage message.                                        */
-/* -------------------------------------------------------------------- */
-    if( argc < 2 )
-    {
-	printf( "dbfcreate xbase_file [[-s field_name width],[-n field_name width decimals]]...\n" );
+  /* -------------------------------------------------------------------- */
+  /*      Display a usage message.                                        */
+  /* -------------------------------------------------------------------- */
+  if (argc < 2) {
+    printf("dbfcreate xbase_file [[-s field_name width],[-n field_name width "
+           "decimals]]...\n");
 
-	exit( 1 );
+    exit(1);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*	Create the database.						*/
+  /* -------------------------------------------------------------------- */
+  hDBF = DBFCreate(argv[1]);
+  if (hDBF == NULL) {
+    printf("DBFCreate(%s) failed.\n", argv[1]);
+    exit(2);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*	Loop over the field definitions adding new fields.	       	*/
+  /* -------------------------------------------------------------------- */
+  for (i = 2; i < argc; i++) {
+    if (strcmp(argv[i], "-s") == 0 && i < argc - 2) {
+      if (DBFAddField(hDBF, argv[i + 1], FTString, atoi(argv[i + 2]), 0) ==
+          -1) {
+        printf("DBFAddField(%s,FTString,%d,0) failed.\n", argv[i + 1],
+               atoi(argv[i + 2]));
+        exit(4);
+      }
+      i = i + 2;
+    } else if (strcmp(argv[i], "-n") == 0 && i < argc - 3) {
+      if (DBFAddField(hDBF, argv[i + 1], FTDouble, atoi(argv[i + 2]),
+                      atoi(argv[i + 3])) == -1) {
+        printf("DBFAddField(%s,FTDouble,%d,%d) failed.\n", argv[i + 1],
+               atoi(argv[i + 2]), atoi(argv[i + 3]));
+        exit(4);
+      }
+      i = i + 3;
+    } else {
+      printf("Argument incomplete, or unrecognised:%s\n", argv[i]);
+      exit(3);
     }
+  }
 
-/* -------------------------------------------------------------------- */
-/*	Create the database.						*/
-/* -------------------------------------------------------------------- */
-    hDBF = DBFCreate( argv[1] );
-    if( hDBF == NULL )
-    {
-	printf( "DBFCreate(%s) failed.\n", argv[1] );
-	exit( 2 );
-    }
-    
-/* -------------------------------------------------------------------- */
-/*	Loop over the field definitions adding new fields.	       	*/
-/* -------------------------------------------------------------------- */
-    for( i = 2; i < argc; i++ )
-    {
-	if( strcmp(argv[i],"-s") == 0 && i < argc-2 )
-	{
-	    if( DBFAddField( hDBF, argv[i+1], FTString, atoi(argv[i+2]), 0 )
-                == -1 )
-	    {
-		printf( "DBFAddField(%s,FTString,%d,0) failed.\n",
-		        argv[i+1], atoi(argv[i+2]) );
-		exit( 4 );
-	    }
-	    i = i + 2;
-	}
-	else if( strcmp(argv[i],"-n") == 0 && i < argc-3 )
-	{
-	    if( DBFAddField( hDBF, argv[i+1], FTDouble, atoi(argv[i+2]), 
-			      atoi(argv[i+3]) ) == -1 )
-	    {
-		printf( "DBFAddField(%s,FTDouble,%d,%d) failed.\n",
-		        argv[i+1], atoi(argv[i+2]), atoi(argv[i+3]) );
-		exit( 4 );
-	    }
-	    i = i + 3;
-	}
-	else
-	{
-	    printf( "Argument incomplete, or unrecognised:%s\n", argv[i] );
-	    exit( 3 );
-	}
-    }
+  DBFClose(hDBF);
 
-    DBFClose( hDBF );
-
-    return( 0 );
+  return (0);
 }
