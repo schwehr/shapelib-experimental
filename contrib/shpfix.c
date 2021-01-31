@@ -21,10 +21,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************
- * shpfix
- *
- *
- *  gcc -c shpfix.c shpopen.c -o shpfix
  *
  *  Utility program to fix nulls and inconsistencies in Shapefiles
  *  as happens from time to time
@@ -35,60 +31,44 @@
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv)
-
-{
-  SHPHandle hSHP, cSHP;
-  int nShapeType, cShapeType, nEntities, i;
-  double adBounds[4];
-  SHPObject *shape;
-  int fix_rec;
-
-  /* -------------------------------------------------------------------- */
-  /*      Display a usage message.                                        */
-  /* -------------------------------------------------------------------- */
+int main(int argc, char **argv) {
   if (argc <= 3) {
     printf("shpfix shpfile new_file <Record# to Blank>\n");
     exit(1);
   }
 
-  fix_rec = atoi(argv[3]);
+  int fix_rec = atoi(argv[3]);
   fix_rec--;
 
-  /* -------------------------------------------------------------------- */
-  /*      Open the passed shapefile.                                      */
-  /* -------------------------------------------------------------------- */
-  hSHP = SHPOpen(argv[1], "rb+");
-
+  SHPHandle hSHP = SHPOpen(argv[1], "rb+");
   if (hSHP == NULL) {
     printf("Unable to open:%s\n", argv[1]);
     exit(1);
   }
 
+  int nShapeType;
+  int nEntities;
   SHPGetInfo(hSHP, &nEntities, &nShapeType, NULL, NULL);
 
-  /* -------------------------------------------------------------------- */
-  /*      Open the passed shapefile.                                      */
-  /* -------------------------------------------------------------------- */
-  cSHP = SHPCreate(argv[2], nShapeType);
-
+  // Open the passed shapefile.
+  SHPHandle cSHP = SHPCreate(argv[2], nShapeType);
   if (cSHP == NULL) {
+    SHPClose(hSHP);
     printf("Unable to open:%s\n", argv[2]);
     exit(1);
   }
 
+  int cShapeType;
+  double adBounds[4];
   SHPGetInfo(cSHP, NULL, &cShapeType, &(adBounds[0]), &(adBounds[2]));
 
-  /* -------------------------------------------------------------------- */
-  /*	Skim over the list of shapes, printing all the vertices.	*/
-  /* -------------------------------------------------------------------- */
-
-  for (i = 0; i < nEntities; i++) {
-
-    shape = SHPReadObject(hSHP, i);
+  // Skim over the list of shapes, printing all the vertices.
+  for (int i = 0; i < nEntities; i++) {
+    SHPObject *shape = SHPReadObject(hSHP, i);
     if (i == fix_rec) {
       shape->nParts = 0;
       shape->nVertices = 0;

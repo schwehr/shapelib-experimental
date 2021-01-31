@@ -21,45 +21,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************
- *
- * requires shapelib 1.2
- *   gcc shpinfoj shpopen.o -o shpinfo
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv)
-
-{
-  SHPHandle hSHP, cSHP;
-  int nShapeType, nEntities, nVertices, nParts, *panParts, i, iPart;
-  double *padVertices, adfBndsMin[4], adfBndsMax[4];
-  const char *pszPlus;
-  int cShapeType, cEntities, cVertices, cParts, *cpanParts, ci, cPart;
-  double *cpadVertices, cadBounds[4];
-  const char *cpszPlus;
-  char sType[15] = "";
-  /* -------------------------------------------------------------------- */
-  /*      Display a usage message.                                        */
-  /* -------------------------------------------------------------------- */
+int main(int argc, char **argv) {
   if (argc != 2) {
     printf("shpinfo shp_file\n");
     exit(1);
   }
 
-  /* -------------------------------------------------------------------- */
-  /*      Open the passed shapefile.                                      */
-  /* -------------------------------------------------------------------- */
-  hSHP = SHPOpen(argv[1], "rb");
+  SHPHandle hSHP = SHPOpen(argv[1], "rb");
 
   if (hSHP == NULL) {
     printf("Unable to open:%s\n", argv[1]);
     exit(1);
   }
 
+  int nShapeType;
+  int nEntities;
+  double adfBndsMin[4];
+  double adfBndsMax[4];
   SHPGetInfo(hSHP, &nEntities, &nShapeType, adfBndsMin, adfBndsMax);
+
+  char sType[15] = "";
 
   switch (nShapeType) {
   case SHPT_POINT:
@@ -79,13 +67,9 @@ int main(int argc, char **argv)
     break;
   }
 
-  /* -------------------------------------------------------------------- */
   printf("Info for %s\n", argv[1]);
   printf("%s(%d), %d Records in file\n", sType, nShapeType, nEntities);
 
-  /* -------------------------------------------------------------------- */
-  /*      Print out the file bounds.                                      */
-  /* -------------------------------------------------------------------- */
   printf("File Bounds: (%15.10lg,%15.10lg)\n\t(%15.10lg,%15.10lg)\n",
          adfBndsMin[0], adfBndsMin[1], adfBndsMax[0], adfBndsMax[1]);
 
