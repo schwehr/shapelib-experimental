@@ -43,9 +43,6 @@
 
 SHP_CVSID("$Id$")
 
-static void SHPTreeNodeDump(SHPTree *, SHPTreeNode *, const char *, int);
-static void SHPTreeNodeSearchAndDump(SHPTree *, double *, double *);
-
 /************************************************************************/
 /*                               Usage()                                */
 /************************************************************************/
@@ -57,157 +54,6 @@ static void Usage()
          "            [-v] [-o indexfilename] [-i indexfilename]\n"
          "            shp_file\n");
   exit(1);
-}
-
-/************************************************************************/
-/*                                main()                                */
-/************************************************************************/
-int main(int argc, char **argv)
-
-{
-  SHPHandle hSHP;
-  SHPTree *psTree;
-  int nExpandShapes = 0;
-  int nMaxDepth = 0;
-  int bDoSearch = 0;
-  double adfSearchMin[4], adfSearchMax[4];
-  const char *pszOutputIndexFilename = NULL;
-  const char *pszInputIndexFilename = NULL;
-  const char *pszTargetFile = NULL;
-
-  /* -------------------------------------------------------------------- */
-  /*	Consume flags.							*/
-  /* -------------------------------------------------------------------- */
-  while (argc > 1) {
-    if (strcmp(argv[1], "-v") == 0) {
-      nExpandShapes = 1;
-      argv++;
-      argc--;
-    } else if (strcmp(argv[1], "-maxdepth") == 0 && argc > 2) {
-      nMaxDepth = atoi(argv[2]);
-      argv += 2;
-      argc -= 2;
-    } else if (strcmp(argv[1], "-o") == 0 && argc > 2) {
-      pszOutputIndexFilename = argv[2];
-      argv += 2;
-      argc -= 2;
-    } else if (strcmp(argv[1], "-i") == 0 && argc > 2) {
-      pszInputIndexFilename = argv[2];
-      argv += 2;
-      argc -= 2;
-    } else if (strcmp(argv[1], "-search") == 0 && argc > 5) {
-      bDoSearch = 1;
-
-      adfSearchMin[0] = atof(argv[2]);
-      adfSearchMin[1] = atof(argv[3]);
-      adfSearchMax[0] = atof(argv[4]);
-      adfSearchMax[1] = atof(argv[5]);
-
-      adfSearchMin[2] = adfSearchMax[2] = 0.0;
-      adfSearchMin[3] = adfSearchMax[3] = 0.0;
-
-      if (adfSearchMin[0] > adfSearchMax[0] ||
-          adfSearchMin[1] > adfSearchMax[1]) {
-        printf("Min greater than max in search criteria.\n");
-        Usage();
-      }
-
-      argv += 5;
-      argc -= 5;
-    } else if (pszTargetFile == NULL) {
-      pszTargetFile = argv[1];
-      argv++;
-      argc--;
-    } else {
-      printf("Unrecognised argument: %s\n", argv[1]);
-      Usage();
-    }
-  }
-
-  /* -------------------------------------------------------------------- */
-  /*      Do a search with an existing index file?                        */
-  /* -------------------------------------------------------------------- */
-  if (bDoSearch && pszInputIndexFilename != NULL) {
-    FILE *fp = fopen(pszInputIndexFilename, "rb");
-    int *panResult, nResultCount = 0, iResult;
-
-    if (fp == NULL) {
-      perror(pszInputIndexFilename);
-      exit(1);
-    }
-
-    panResult =
-        SHPSearchDiskTree(fp, adfSearchMin, adfSearchMax, &nResultCount);
-
-    printf("Result: ");
-    for (iResult = 0; iResult < nResultCount; iResult++)
-      printf("%d ", panResult[iResult]);
-    printf("\n");
-    free(panResult);
-
-    fclose(fp);
-
-    exit(0);
-  }
-
-  /* -------------------------------------------------------------------- */
-  /*      Display a usage message.                                        */
-  /* -------------------------------------------------------------------- */
-  if (pszTargetFile == NULL) {
-    Usage();
-  }
-
-  /* -------------------------------------------------------------------- */
-  /*      Open the passed shapefile.                                      */
-  /* -------------------------------------------------------------------- */
-  hSHP = SHPOpen(pszTargetFile, "rb");
-
-  if (hSHP == NULL) {
-    printf("Unable to open:%s\n", pszTargetFile);
-    exit(1);
-  }
-
-  /* -------------------------------------------------------------------- */
-  /*      Build a quadtree structure for this file.                       */
-  /* -------------------------------------------------------------------- */
-  psTree = SHPCreateTree(hSHP, 2, nMaxDepth, NULL, NULL);
-
-  /* -------------------------------------------------------------------- */
-  /*      Trim unused nodes from the tree.                                */
-  /* -------------------------------------------------------------------- */
-  SHPTreeTrimExtraNodes(psTree);
-
-  /* -------------------------------------------------------------------- */
-  /*      Dump tree to .qix file.                                         */
-  /* -------------------------------------------------------------------- */
-  if (pszOutputIndexFilename != NULL) {
-    SHPWriteTree(psTree, pszOutputIndexFilename);
-  }
-
-  /* -------------------------------------------------------------------- */
-  /*      Dump tree by recursive descent.                                 */
-  /* -------------------------------------------------------------------- */
-  else if (!bDoSearch)
-    SHPTreeNodeDump(psTree, psTree->psRoot, "", nExpandShapes);
-
-  /* -------------------------------------------------------------------- */
-  /*      or do a search instead.                                         */
-  /* -------------------------------------------------------------------- */
-  else
-    SHPTreeNodeSearchAndDump(psTree, adfSearchMin, adfSearchMax);
-
-  /* -------------------------------------------------------------------- */
-  /*      cleanup                                                         */
-  /* -------------------------------------------------------------------- */
-  SHPDestroyTree(psTree);
-
-  SHPClose(hSHP);
-
-#ifdef USE_DBMALLOC
-  malloc_dump(2);
-#endif
-
-  exit(0);
 }
 
 /************************************************************************/
@@ -388,4 +234,156 @@ static void SHPTreeNodeSearchAndDump(SHPTree *hTree, double *padfBoundsMin,
 
   if (nShapeCount == 0)
     printf("No shapes found in search.\n");
+}
+
+
+/************************************************************************/
+/*                                main()                                */
+/************************************************************************/
+int main(int argc, char **argv)
+
+{
+  SHPHandle hSHP;
+  SHPTree *psTree;
+  int nExpandShapes = 0;
+  int nMaxDepth = 0;
+  int bDoSearch = 0;
+  double adfSearchMin[4], adfSearchMax[4];
+  const char *pszOutputIndexFilename = NULL;
+  const char *pszInputIndexFilename = NULL;
+  const char *pszTargetFile = NULL;
+
+  /* -------------------------------------------------------------------- */
+  /*	Consume flags.							*/
+  /* -------------------------------------------------------------------- */
+  while (argc > 1) {
+    if (strcmp(argv[1], "-v") == 0) {
+      nExpandShapes = 1;
+      argv++;
+      argc--;
+    } else if (strcmp(argv[1], "-maxdepth") == 0 && argc > 2) {
+      nMaxDepth = atoi(argv[2]);
+      argv += 2;
+      argc -= 2;
+    } else if (strcmp(argv[1], "-o") == 0 && argc > 2) {
+      pszOutputIndexFilename = argv[2];
+      argv += 2;
+      argc -= 2;
+    } else if (strcmp(argv[1], "-i") == 0 && argc > 2) {
+      pszInputIndexFilename = argv[2];
+      argv += 2;
+      argc -= 2;
+    } else if (strcmp(argv[1], "-search") == 0 && argc > 5) {
+      bDoSearch = 1;
+
+      adfSearchMin[0] = atof(argv[2]);
+      adfSearchMin[1] = atof(argv[3]);
+      adfSearchMax[0] = atof(argv[4]);
+      adfSearchMax[1] = atof(argv[5]);
+
+      adfSearchMin[2] = adfSearchMax[2] = 0.0;
+      adfSearchMin[3] = adfSearchMax[3] = 0.0;
+
+      if (adfSearchMin[0] > adfSearchMax[0] ||
+          adfSearchMin[1] > adfSearchMax[1]) {
+        printf("Min greater than max in search criteria.\n");
+        Usage();
+      }
+
+      argv += 5;
+      argc -= 5;
+    } else if (pszTargetFile == NULL) {
+      pszTargetFile = argv[1];
+      argv++;
+      argc--;
+    } else {
+      printf("Unrecognised argument: %s\n", argv[1]);
+      Usage();
+    }
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*      Do a search with an existing index file?                        */
+  /* -------------------------------------------------------------------- */
+  if (bDoSearch && pszInputIndexFilename != NULL) {
+    FILE *fp = fopen(pszInputIndexFilename, "rb");
+    int *panResult, nResultCount = 0, iResult;
+
+    if (fp == NULL) {
+      perror(pszInputIndexFilename);
+      exit(1);
+    }
+
+    panResult =
+        SHPSearchDiskTree(fp, adfSearchMin, adfSearchMax, &nResultCount);
+
+    printf("Result: ");
+    for (iResult = 0; iResult < nResultCount; iResult++)
+      printf("%d ", panResult[iResult]);
+    printf("\n");
+    free(panResult);
+
+    fclose(fp);
+
+    exit(0);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*      Display a usage message.                                        */
+  /* -------------------------------------------------------------------- */
+  if (pszTargetFile == NULL) {
+    Usage();
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*      Open the passed shapefile.                                      */
+  /* -------------------------------------------------------------------- */
+  hSHP = SHPOpen(pszTargetFile, "rb");
+
+  if (hSHP == NULL) {
+    printf("Unable to open:%s\n", pszTargetFile);
+    exit(1);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*      Build a quadtree structure for this file.                       */
+  /* -------------------------------------------------------------------- */
+  psTree = SHPCreateTree(hSHP, 2, nMaxDepth, NULL, NULL);
+
+  /* -------------------------------------------------------------------- */
+  /*      Trim unused nodes from the tree.                                */
+  /* -------------------------------------------------------------------- */
+  SHPTreeTrimExtraNodes(psTree);
+
+  /* -------------------------------------------------------------------- */
+  /*      Dump tree to .qix file.                                         */
+  /* -------------------------------------------------------------------- */
+  if (pszOutputIndexFilename != NULL) {
+    SHPWriteTree(psTree, pszOutputIndexFilename);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*      Dump tree by recursive descent.                                 */
+  /* -------------------------------------------------------------------- */
+  else if (!bDoSearch)
+    SHPTreeNodeDump(psTree, psTree->psRoot, "", nExpandShapes);
+
+  /* -------------------------------------------------------------------- */
+  /*      or do a search instead.                                         */
+  /* -------------------------------------------------------------------- */
+  else
+    SHPTreeNodeSearchAndDump(psTree, adfSearchMin, adfSearchMax);
+
+  /* -------------------------------------------------------------------- */
+  /*      cleanup                                                         */
+  /* -------------------------------------------------------------------- */
+  SHPDestroyTree(psTree);
+
+  SHPClose(hSHP);
+
+#ifdef USE_DBMALLOC
+  malloc_dump(2);
+#endif
+
+  exit(0);
 }
