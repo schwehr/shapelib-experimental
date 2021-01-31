@@ -8,20 +8,6 @@
  * requires shapelib 1.2
  *   gcc dbfinfo dbfopen.o dbfinfo
  *
- *
- * $Log$
- * Revision 1.4  2016-12-05 12:44:07  erouault
- * * Major overhaul of Makefile build system to use autoconf/automake.
- *
- * * Warning fixes in contrib/
- *
- * Revision 1.3  2011-07-24 03:17:46  fwarmerdam
- * include string.h and stdlib.h where needed in contrib (#2146)
- *
- * Revision 1.2  1999-05-26 02:56:31  candrsn
- * updates to shpdxf, dbfinfo, port from Shapelib 1.1.5 of dbfcat and shpinfo
- *
- *
  */
 
 #include "shapefil.h"
