@@ -47,72 +47,68 @@
  *
  */
 
+#include "shapefil.h"
 #include <stdlib.h>
 #include <string.h>
-#include "shapefil.h"
 
-int main( int argc, char ** argv )
+int main(int argc, char **argv)
 
 {
-    SHPHandle	hSHP, cSHP;
-    int		nShapeType, nEntities, nVertices, nParts, *panParts, i, iPart;
-    double	*padVertices, adfBndsMin[4], adfBndsMax[4];
-    const char 	*pszPlus;
-    int		cShapeType, cEntities, cVertices, cParts, *cpanParts, ci, cPart;
-    double	*cpadVertices, cadBounds[4];
-    const char 	*cpszPlus;
-    char	sType [15]= "";
-/* -------------------------------------------------------------------- */
-/*      Display a usage message.                                        */
-/* -------------------------------------------------------------------- */
-    if( argc != 2 )
-    {
-	printf( "shpinfo shp_file\n" );
-	exit( 1 );
-    }
+  SHPHandle hSHP, cSHP;
+  int nShapeType, nEntities, nVertices, nParts, *panParts, i, iPart;
+  double *padVertices, adfBndsMin[4], adfBndsMax[4];
+  const char *pszPlus;
+  int cShapeType, cEntities, cVertices, cParts, *cpanParts, ci, cPart;
+  double *cpadVertices, cadBounds[4];
+  const char *cpszPlus;
+  char sType[15] = "";
+  /* -------------------------------------------------------------------- */
+  /*      Display a usage message.                                        */
+  /* -------------------------------------------------------------------- */
+  if (argc != 2) {
+    printf("shpinfo shp_file\n");
+    exit(1);
+  }
 
-/* -------------------------------------------------------------------- */
-/*      Open the passed shapefile.                                      */
-/* -------------------------------------------------------------------- */
-    hSHP = SHPOpen( argv[1], "rb" );
+  /* -------------------------------------------------------------------- */
+  /*      Open the passed shapefile.                                      */
+  /* -------------------------------------------------------------------- */
+  hSHP = SHPOpen(argv[1], "rb");
 
-    if( hSHP == NULL )
-    {
-	printf( "Unable to open:%s\n", argv[1] );
-	exit( 1 );
-    }
+  if (hSHP == NULL) {
+    printf("Unable to open:%s\n", argv[1]);
+    exit(1);
+  }
 
-    SHPGetInfo( hSHP, &nEntities, &nShapeType, adfBndsMin, adfBndsMax );
+  SHPGetInfo(hSHP, &nEntities, &nShapeType, adfBndsMin, adfBndsMax);
 
-    switch ( nShapeType ) {
-       case SHPT_POINT:
-		strcpy(sType,"Point");
-		break;
+  switch (nShapeType) {
+  case SHPT_POINT:
+    strcpy(sType, "Point");
+    break;
 
-       case SHPT_ARC:
-		strcpy(sType,"Polyline");
-		break;
+  case SHPT_ARC:
+    strcpy(sType, "Polyline");
+    break;
 
-       case SHPT_POLYGON:
-		strcpy(sType,"Polygon");
-		break;
+  case SHPT_POLYGON:
+    strcpy(sType, "Polygon");
+    break;
 
-       case SHPT_MULTIPOINT:
-		strcpy(sType,"MultiPoint");
-		break;
-        }
+  case SHPT_MULTIPOINT:
+    strcpy(sType, "MultiPoint");
+    break;
+  }
 
-/* -------------------------------------------------------------------- */
-   printf ("Info for %s\n",argv[1]);
-   printf ("%s(%d), %d Records in file\n",sType,nShapeType,nEntities);
+  /* -------------------------------------------------------------------- */
+  printf("Info for %s\n", argv[1]);
+  printf("%s(%d), %d Records in file\n", sType, nShapeType, nEntities);
 
-/* -------------------------------------------------------------------- */
-/*      Print out the file bounds.                                      */
-/* -------------------------------------------------------------------- */
-    printf( "File Bounds: (%15.10lg,%15.10lg)\n\t(%15.10lg,%15.10lg)\n",
-	    adfBndsMin[0], adfBndsMin[1], adfBndsMax[0], adfBndsMax[1] );
+  /* -------------------------------------------------------------------- */
+  /*      Print out the file bounds.                                      */
+  /* -------------------------------------------------------------------- */
+  printf("File Bounds: (%15.10lg,%15.10lg)\n\t(%15.10lg,%15.10lg)\n",
+         adfBndsMin[0], adfBndsMin[1], adfBndsMax[0], adfBndsMax[1]);
 
-
-
-    SHPClose( hSHP );
+  SHPClose(hSHP);
 }
