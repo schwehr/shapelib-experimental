@@ -25,9 +25,8 @@
  * shpcentrd.c  - compute XY centroid for complex shapes
  *			and create a new SHPT_PT file of then
  * 			specifically undo compound objects but not complex ones
- */
-
-/* the centroid is defined as
+ *
+ * the centroid is defined as
  *
  *      Cx = sum (x dArea ) / Total Area
  *  and
@@ -36,73 +35,67 @@
 
 #include "shapefil.h"
 #include "shpgeo.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv)
-
-{
-  SHPHandle old_SHP, new_SHP;
-  DBFHandle old_DBF, new_DBF;
-  int nShapeType, nEntities, nVertices, nParts, *panParts, i, iPart;
-  double *padVertices, adBounds[4];
-  const char *pszPlus;
-  DBFFieldType idfld_type;
-  int idfld, nflds;
-  char kv[257] = "";
-  char idfldName[120] = "";
-  char fldName[120] = "";
-  char shpFileName[120] = "";
-  char dbfFileName[120] = "";
-  double apeture[4];
-  char *DBFRow = NULL;
-  int Cpan[2] = {0, 0};
-  int byRing = 1;
-  PT Centrd;
-  SHPObject *psCShape, *cent_pt;
-
+int main(int argc, char **argv) {
   if (argc < 3) {
     printf("shpcentrd shp_file new_shp_file\n");
     exit(1);
   }
 
-  old_SHP = SHPOpen(argv[1], "rb");
-  old_DBF = DBFOpen(argv[1], "rb");
-  if (old_SHP == NULL || old_DBF == NULL) {
-    printf("Unable to open old files:%s\n", argv[1]);
+  SHPHandle old_SHP = SHPOpen(argv[1], "rb");
+  if (old_SHP == NULL) {
+    printf("Unable to open old shp file: %s\n", argv[1]);
+    exit(1);
+  }
+  DBFHandle old_DBF = DBFOpen(argv[1], "rb");
+  if (old_DBF == NULL) {
+    printf("Unable to open old dbf file: %s\n", argv[1]);
+    SHPClose(old_SHP);
     exit(1);
   }
 
+  int nEntities;
+  int nShapeType;
   SHPGetInfo(old_SHP, &nEntities, &nShapeType, NULL, NULL);
-  new_SHP = SHPCreate(argv[2], SHPT_POINT);
-
-  new_DBF = DBFCloneEmpty(old_DBF, argv[2]);
-  if (new_SHP == NULL || new_DBF == NULL) {
-    printf("Unable to create new files:%s\n", argv[2]);
+  SHPHandle new_SHP = SHPCreate(argv[2], SHPT_POINT);
+  if (new_SHP == NULL) {
+    printf("Unable to create new shp file: %s\n", argv[2]);
+    SHPClose(old_SHP);
+    SHPClose(new_SHP);
     exit(1);
   }
 
-  DBFRow = (char *)malloc((old_DBF->nRecordLength) + 15);
+  DBFHandle new_DBF = DBFCloneEmpty(old_DBF, argv[2]);
+  if (new_DBF == NULL) {
+    printf("Unable to create new dbf file: %s\n", argv[2]);
+    SHPClose(old_SHP);
+    SHPClose(new_SHP);
+    DBFClose(old_DBF);
+    exit(1);
+  }
+
+  char *DBFRow = (char *)malloc((old_DBF->nRecordLength) + 15);
 
 #ifdef DEBUG
-  printf("ShpCentrd using shpgeo \n");
+  printf("ShpCentrd using shpgeo\n");
 #endif
 
-  for (i = 0; i < nEntities; i++) {
-    int res;
+  const int byRing = 1; // TODO(schwehr): Bug?
 
-    psCShape = SHPReadObject(old_SHP, i);
+  for (int i = 0; i < nEntities; i++) {
+    SHPObject *psCShape = SHPReadObject(old_SHP, i);
 
     if (byRing == 1) {
-      int ring;
-      for (ring = 0; ring < psCShape->nParts; ring++) {
-        SHPObject *psO;
-        psO = SHPClone(psCShape, ring, ring + 1);
+      for (int ring = 0; ring < psCShape->nParts; ring++) {
+        SHPObject *psO = SHPClone(psCShape, ring, ring + 1);
 
-        Centrd = SHPCentrd_2d(psO);
+        const PT Centrd = SHPCentrd_2d(psO);
 
-        cent_pt = SHPCreateSimpleObject(SHPT_POINT, 1, (double *)&(Centrd.x),
-                                        (double *)&(Centrd.y), NULL);
+        SHPObject *cent_pt = SHPCreateSimpleObject(
+            SHPT_POINT, 1, (double *)&(Centrd.x), (double *)&(Centrd.y), NULL);
 
         SHPWriteObject(new_SHP, -1, cent_pt);
 
@@ -115,11 +108,10 @@ int main(int argc, char **argv)
       }
 
     } else {
+      const PT Centrd = SHPCentrd_2d(psCShape);
 
-      Centrd = SHPCentrd_2d(psCShape);
-
-      cent_pt = SHPCreateSimpleObject(SHPT_POINT, 1, (double *)&(Centrd.x),
-                                      (double *)&(Centrd.y), NULL);
+      SHPObject *cent_pt = SHPCreateSimpleObject(
+          SHPT_POINT, 1, (double *)&(Centrd.x), (double *)&(Centrd.y), NULL);
 
       SHPWriteObject(new_SHP, -1, cent_pt);
 

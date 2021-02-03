@@ -26,7 +26,7 @@
  * support for geometric and other additions to shapelib
  */
 
-/* I'm using some shorthand throughout this file
+/* Shorthand throughout this file
  *      R+ is a Clockwise Ring and is the positive portion of an object
  *      R- is a CounterClockwise Ring and is a hole in a R+
  *      A complex object is one having at least one R-

@@ -26,28 +26,17 @@
  *
  * derived from a ESRI Avenue Script
  * and DXF specification from AutoCad 3 (yes 1984)
- *
- * modifications Carl Andrson 11/96
- * modifications Carl Andrson 3/97
- *
- * converted to C code 12/98
- *
- * requires shapelib 1.2
- *   gcc shpdxf.c shpopen.o dbfopen.o -o shpdxf
- *
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define FLOAT_PREC "%16.5f\r\n"
 
-static void dxf_hdr(x1, y1, x2, y2, df) double x1, y1, x2, y2;
-FILE *df;
-{
-  /* Create HEADER section */
-
+// Create HEADER section.
+static void dxf_hdr(double x1, double y1, double x2, double y2, FILE *df) {
   fprintf(df, "  0\r\n");
   fprintf(df, "SECTION\r\n");
   fprintf(df, "  2\r\n");
@@ -106,7 +95,6 @@ FILE *df;
   fprintf(df, "ENDSEC\r\n");
 
   /* Create BLOCKS section  */
-
   fprintf(df, "  0\r\n");
   fprintf(df, "SECTION\r\n");
   fprintf(df, "  2\r\n");
@@ -119,11 +107,7 @@ FILE *df;
   fprintf(df, "ENTITIES\r\n");
 }
 
-static void dxf_ent_preamble(dxf_type, id, df) int dxf_type;
-char *id;
-FILE *df;
-{
-
+static void dxf_ent_preamble(int dxf_type, char *id, FILE *df) {
   fprintf(df, "  0\r\n");
 
   switch (dxf_type) {
@@ -156,12 +140,9 @@ FILE *df;
   }
 }
 
-static void dxf_ent(id, x, y, z, dxf_type, df) char *id;
-double x, y, z;
-int dxf_type;
-FILE *df;
-{
-  if ((dxf_type == SHPT_ARC) || (dxf_type == SHPT_POLYGON)) {
+static void dxf_ent(char *id, double x, double y, double z, int dxf_type,
+                    FILE *df) {
+  if (dxf_type == SHPT_ARC || dxf_type == SHPT_POLYGON) {
     fprintf(df, "  0\r\n");
     fprintf(df, "VERTEX\r\n");
     fprintf(df, "  8\r\n");
@@ -178,64 +159,60 @@ FILE *df;
     fprintf(df, "0.0\r\n");
 }
 
-static void dxf_ent_postamble(dxf_type, df) int dxf_type;
-FILE *df;
-{
-  if ((dxf_type == SHPT_ARC) || (dxf_type == SHPT_POLYGON))
+static void dxf_ent_postamble(int dxf_type, FILE *df) {
+  if (dxf_type == SHPT_ARC || dxf_type == SHPT_POLYGON)
     fprintf(df, "  0\r\nSEQEND\r\n  8\r\n0\r\n");
 }
 
-int main(int argc, char **argv)
-
-{
-  char shpFileName[80] = "", dbfFileName[80] = "";
-  char dxfFileName[80] = "";
-  char idfldName[15];
-  char zfldName[6] = "ELEV";
-  char fldName[15];
-  char id[255];
-  double elev;
-  int parts, *panParts, nParts, nVertices;
-  FILE *dxf;
-  SHPHandle shp;
-  DBFHandle dbf;
-  DBFFieldType idfld_type;
-  double adfBoundsMin[4], adfBoundsMax[4];
-  int vrtx, shp_type, shp_numrec, zfld, idfld, nflds, recNum, part;
-  unsigned int MaxElem = -1;
-
+int main(int argc, char **argv) {
   if (argc < 2) {
     printf("usage: shpdxf shapefile {idfield}\r\n");
     exit(-1);
   }
 
+  char shpFileName[80] = "";
   strcpy(shpFileName, argv[1]);
+  char dbfFileName[80] = "";
   strncpy(dbfFileName, shpFileName, strlen(shpFileName) - 3);
   strcat(dbfFileName, "dbf");
+
+  char dxfFileName[80] = "";
 
   strncpy(dxfFileName, shpFileName, strlen(shpFileName) - 3);
   strcat(dxfFileName, "dxf");
 
-  shp = SHPOpen(shpFileName, "rb");
-  dbf = DBFOpen(dbfFileName, "rb");
-  dxf = fopen(dxfFileName, "w");
+  SHPHandle shp = SHPOpen(shpFileName, "rb");
+  DBFHandle dbf = DBFOpen(dbfFileName, "rb");
+  FILE *dxf = fopen(dxfFileName, "w");
 
   printf("Starting conversion %s(%s) -> %s\r\n", shpFileName, dbfFileName,
          dxfFileName);
 
+  int shp_numrec;
+  int shp_type;
+  double adfBoundsMin[4];
+  double adfBoundsMax[4];
   SHPGetInfo(shp, &shp_numrec, &shp_type, adfBoundsMin, adfBoundsMax);
   printf("file has %d objects\r\n", shp_numrec);
   dxf_hdr(adfBoundsMin[0], adfBoundsMin[1], adfBoundsMax[0], adfBoundsMax[1],
           dxf);
 
-  /* Before proceeding, allow the user to specify the ID field to use or default
-   * to the record number.... */
+  // Allow the user to specify the ID field to use or default to the record
+  // number.
+
+  unsigned int MaxElem = -1;
 
   if (argc > 3)
     MaxElem = atoi(argv[3]);
 
-  nflds = DBFGetFieldCount(dbf);
+  const int nflds = DBFGetFieldCount(dbf);
+  int idfld = -1;
+
+  DBFFieldType idfld_type;
+  char fldName[15];
+
   if (argc > 2) {
+    char idfldName[15];
     strcpy(idfldName, argv[2]);
     for (idfld = 0; idfld < nflds; idfld++) {
       idfld_type = DBFGetFieldInfo(dbf, idfld, fldName, NULL, NULL);
@@ -247,10 +224,12 @@ int main(int argc, char **argv)
       idfld = -1;
     } else
       printf("proceeding with field %s for LayerNames\r\n", fldName);
-  } else
-    idfld = -1;
+  }
 
-  for (zfld = 0; zfld < nflds; zfld++) {
+  char zfldName[6] = "ELEV";
+  int zfld = 0;
+
+  for (; zfld < nflds; zfld++) {
     DBFGetFieldInfo(dbf, zfld, fldName, NULL, NULL);
     if (!strcmp(zfldName, fldName))
       break;
@@ -259,12 +238,10 @@ int main(int argc, char **argv)
     zfld = -1;
   //  printf ("proceeding with id = %d, elevation = %d\r\n",idfld, zfld);
 
-  /* Proceed to process data..... */
+  // Process data
 
-  for (recNum = 0; (recNum < shp_numrec) && (recNum < MaxElem); recNum++) {
-
-    SHPObject *shape;
-
+  char id[255];
+  for (int recNum = 0; recNum < shp_numrec && recNum < MaxElem; recNum++) {
     if (idfld >= 0)
       switch (idfld_type) {
       case FTString:
@@ -276,6 +253,7 @@ int main(int argc, char **argv)
     else
       sprintf(id, "lvl_%-20d", (recNum + 1));
 
+    double elev;
     if (zfld >= 0)
       elev = 0;
     else
@@ -285,13 +263,13 @@ int main(int argc, char **argv)
     printf("\r\nworking on obj %d", recNum);
 #endif
 
-    shape = SHPReadObject(shp, recNum);
+    SHPObject *shape = SHPReadObject(shp, recNum);
 
-    nVertices = shape->nVertices;
-    nParts = shape->nParts;
-    panParts = shape->panPartStart;
-    part = 0;
-    for (vrtx = 0; vrtx < nVertices; vrtx++) {
+    const int nVertices = shape->nVertices;
+    // const int nParts = shape->nParts;
+    int *panParts = shape->panPartStart;
+    int part = 0;
+    for (int vrtx = 0; vrtx < nVertices; vrtx++) {
 #ifdef DEBUG
       printf("\rworking on part %d, vertex %d", part, vrtx);
 #endif
@@ -312,7 +290,7 @@ int main(int argc, char **argv)
     SHPDestroyObject(shape);
   }
 
-  /* close out DXF file */
+  // Close out DXF file
   fprintf(dxf, "0\r\n");
   fprintf(dxf, "ENDSEC\r\n");
   fprintf(dxf, "0\r\n");
