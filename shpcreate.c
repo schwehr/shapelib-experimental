@@ -34,28 +34,20 @@
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 SHP_CVSID("$Id$")
 
-int main(int argc, char **argv)
-
-{
-  SHPHandle hSHP;
-  int nShapeType;
-
-  /* -------------------------------------------------------------------- */
-  /*      Display a usage message.                                        */
-  /* -------------------------------------------------------------------- */
+int main(int argc, char **argv) {
   if (argc != 3) {
     printf("shpcreate shp_file [point/arc/polygon/multipoint][/m/z]\n");
     exit(1);
   }
 
-  /* -------------------------------------------------------------------- */
-  /*	Figure out the shape type.					*/
-  /* -------------------------------------------------------------------- */
+  // Figure out the shape type.
+  int nShapeType;
   if (strcmp(argv[2], "POINT") == 0 || strcmp(argv[2], "point") == 0)
     nShapeType = SHPT_POINT;
   else if (strcmp(argv[2], "ARC") == 0 || strcmp(argv[2], "arc") == 0)
@@ -88,11 +80,7 @@ int main(int argc, char **argv)
     exit(2);
   }
 
-  /* -------------------------------------------------------------------- */
-  /*	Create the requested layer.					*/
-  /* -------------------------------------------------------------------- */
-  hSHP = SHPCreate(argv[1], nShapeType);
-
+  SHPHandle hSHP = SHPCreate(argv[1], nShapeType);
   if (hSHP == NULL) {
     printf("Unable to create:%s\n", argv[1]);
     exit(3);

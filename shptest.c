@@ -35,6 +35,7 @@
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,20 +47,15 @@ SHP_CVSID("$Id$")
 /*      Write a small point file.                                       */
 /************************************************************************/
 
-static void Test_WritePoints(int nSHPType, const char *pszFilename)
+static void Test_WritePoints(int nSHPType, const char *pszFilename) {
+  SHPHandle hSHPHandle = SHPCreate(pszFilename, nSHPType);
 
-{
-  SHPHandle hSHPHandle;
-  SHPObject *psShape;
-  double x, y, z, m;
-
-  hSHPHandle = SHPCreate(pszFilename, nSHPType);
-
-  x = 1.0;
-  y = 2.0;
-  z = 3.0;
-  m = 4.0;
-  psShape = SHPCreateObject(nSHPType, -1, 0, NULL, NULL, 1, &x, &y, &z, &m);
+  double x = 1.0;
+  double y = 2.0;
+  double z = 3.0;
+  double m = 4.0;
+  SHPObject *psShape =
+      SHPCreateObject(nSHPType, -1, 0, NULL, NULL, 1, &x, &y, &z, &m);
   SHPWriteObject(hSHPHandle, -1, psShape);
   SHPDestroyObject(psShape);
 
@@ -80,25 +76,21 @@ static void Test_WritePoints(int nSHPType, const char *pszFilename)
 /*      Write a small multipoint file.                                  */
 /************************************************************************/
 
-static void Test_WriteMultiPoints(int nSHPType, const char *pszFilename)
-
-{
-  SHPHandle hSHPHandle;
-  SHPObject *psShape;
+static void Test_WriteMultiPoints(int nSHPType, const char *pszFilename) {
   double x[4], y[4], z[4], m[4];
-  int i, iShape;
 
-  hSHPHandle = SHPCreate(pszFilename, nSHPType);
+  SHPHandle hSHPHandle = SHPCreate(pszFilename, nSHPType);
 
-  for (iShape = 0; iShape < 3; iShape++) {
-    for (i = 0; i < 4; i++) {
+  for (int iShape = 0; iShape < 3; iShape++) {
+    for (int i = 0; i < 4; i++) {
       x[i] = iShape * 10 + i + 1.15;
       y[i] = iShape * 10 + i + 2.25;
       z[i] = iShape * 10 + i + 3.35;
       m[i] = iShape * 10 + i + 4.45;
     }
 
-    psShape = SHPCreateObject(nSHPType, -1, 0, NULL, NULL, 4, x, y, z, m);
+    SHPObject *psShape =
+        SHPCreateObject(nSHPType, -1, 0, NULL, NULL, 4, x, y, z, m);
     SHPWriteObject(hSHPHandle, -1, psShape);
     SHPDestroyObject(psShape);
   }
@@ -112,9 +104,7 @@ static void Test_WriteMultiPoints(int nSHPType, const char *pszFilename)
 /*      Write a small arc or polygon file.                              */
 /************************************************************************/
 
-static void Test_WriteArcPoly(int nSHPType, const char *pszFilename)
-
-{
+static void Test_WriteArcPoly(int nSHPType, const char *pszFilename) {
   SHPHandle hSHPHandle;
   SHPObject *psShape;
   double x[100], y[100], z[100], m[100];

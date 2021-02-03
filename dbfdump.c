@@ -34,27 +34,19 @@
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 SHP_CVSID("$Id$")
 
-int main(int argc, char **argv)
-
-{
-  DBFHandle hDBF;
-  int *panWidth, i, iRecord;
-  char szFormat[32], *pszFilename = NULL;
-  int nWidth, nDecimals;
+int main(int argc, char **argv) {
+  // Handle arguments.
   int bHeader = 0;
   int bRaw = 0;
   int bMultiLine = 0;
-  char szTitle[12];
-
-  /* -------------------------------------------------------------------- */
-  /*      Handle arguments.                                               */
-  /* -------------------------------------------------------------------- */
-  for (i = 1; i < argc; i++) {
+  char *pszFilename = NULL;
+  for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-h") == 0)
       bHeader = 1;
     else if (strcmp(argv[i], "-r") == 0)
@@ -80,7 +72,7 @@ int main(int argc, char **argv)
   /* -------------------------------------------------------------------- */
   /*      Open the file.                                                  */
   /* -------------------------------------------------------------------- */
-  hDBF = DBFOpen(pszFilename, "rb");
+  DBFHandle hDBF = DBFOpen(pszFilename, "rb");
   if (hDBF == NULL) {
     printf("DBFOpen(%s,\"r\") failed.\n", argv[1]);
     exit(2);
@@ -97,15 +89,16 @@ int main(int argc, char **argv)
   /* -------------------------------------------------------------------- */
   /*	Dump header definitions.					*/
   /* -------------------------------------------------------------------- */
+  int nDecimals;
+  int nWidth;
+  char szTitle[12];
   if (bHeader) {
-    for (i = 0; i < DBFGetFieldCount(hDBF); i++) {
-      DBFFieldType eType;
-      const char *pszTypeName;
-      char chNativeType;
+    for (int i = 0; i < DBFGetFieldCount(hDBF); i++) {
+      const char chNativeType = DBFGetNativeFieldType(hDBF, i);
 
-      chNativeType = DBFGetNativeFieldType(hDBF, i);
-
-      eType = DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
+      const DBFFieldType eType =
+          DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
+      const char *pszTypeName = NULL;
       if (eType == FTString)
         pszTypeName = "String";
       else if (eType == FTInteger)
@@ -114,6 +107,7 @@ int main(int argc, char **argv)
         pszTypeName = "Double";
       else if (eType == FTInvalid)
         pszTypeName = "Invalid";
+      // TODO(schwehr): else fail.
 
       printf("Field %d: Type=%c/%s, Title=`%s', Width=%d, Decimals=%d\n", i,
              chNativeType, pszTypeName, szTitle, nWidth, nDecimals);
@@ -125,12 +119,11 @@ int main(int argc, char **argv)
   /*	values. We make each field as wide as the field title+1, or 	*/
   /*	the field value + 1. 						*/
   /* -------------------------------------------------------------------- */
-  panWidth = (int *)malloc(DBFGetFieldCount(hDBF) * sizeof(int));
+  int *panWidth = (int *)malloc(DBFGetFieldCount(hDBF) * sizeof(int));
+  char szFormat[32];
 
-  for (i = 0; i < DBFGetFieldCount(hDBF) && !bMultiLine; i++) {
-    DBFFieldType eType;
-
-    eType = DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
+  for (int i = 0; i < DBFGetFieldCount(hDBF) && !bMultiLine; i++) {
+    DBFFieldType eType = DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
     if ((int)strlen(szTitle) > nWidth)
       panWidth[i] = strlen(szTitle);
     else
@@ -147,14 +140,13 @@ int main(int argc, char **argv)
   /* -------------------------------------------------------------------- */
   /*	Read all the records 						*/
   /* -------------------------------------------------------------------- */
-  for (iRecord = 0; iRecord < DBFGetRecordCount(hDBF); iRecord++) {
+  for (int iRecord = 0; iRecord < DBFGetRecordCount(hDBF); iRecord++) {
     if (bMultiLine)
       printf("Record: %d\n", iRecord);
 
-    for (i = 0; i < DBFGetFieldCount(hDBF); i++) {
-      DBFFieldType eType;
-
-      eType = DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
+    for (int i = 0; i < DBFGetFieldCount(hDBF); i++) {
+      DBFFieldType eType =
+          DBFGetFieldInfo(hDBF, i, szTitle, &nWidth, &nDecimals);
 
       if (bMultiLine) {
         printf("%s: ", szTitle);

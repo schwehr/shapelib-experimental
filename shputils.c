@@ -53,8 +53,9 @@
  */
 
 #include "shapefil.h"
-#include "string.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 SHP_CVSID("$Id$")
 
@@ -423,7 +424,6 @@ void findselect() {
   /* Extract all of the select values (by field type) */
 }
 
-
 int selectrec() {
   long int value, ty;
 
@@ -747,12 +747,9 @@ det_inv = 1/(a1*b2 - a2*b1);
 }
 
 int main(int argc, char **argv) {
-
-  /* -------------------------------------------------------------------- */
-  /*      Check command line usage.                                       */
-  /* -------------------------------------------------------------------- */
   if (argc < 2)
     error();
+
   strcpy(infile, argv[1]);
   if (argc > 2) {
     strcpy(outfile, argv[2]);
@@ -768,9 +765,8 @@ int main(int argc, char **argv) {
     printf("DESCRIBE: %s\n", infile);
     strcpy(outfile, "");
   }
-  /* -------------------------------------------------------------------- */
-  /*	Look for other functions on the command line. (SELECT, UNIT)  	*/
-  /* -------------------------------------------------------------------- */
+
+  // Look for other functions on the command line. (SELECT, UNIT)
   for (i = 3; i < argc; i++) {
     if ((strncasecmp2(argv[i], "SEL", 3) == 0) ||
         (strncasecmp2(argv[i], "UNSEL", 5) == 0)) {

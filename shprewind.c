@@ -35,53 +35,41 @@
  */
 
 #include "shapefil.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv)
-
-{
-  SHPHandle hSHP, hSHPOut;
-  int nShapeType, nEntities, i, nInvalidCount = 0;
-  double adfMinBound[4], adfMaxBound[4];
-
-  /* -------------------------------------------------------------------- */
-  /*      Display a usage message.                                        */
-  /* -------------------------------------------------------------------- */
+int main(int argc, char **argv) {
   if (argc != 3) {
     printf("shprewind in_shp_file out_shp_file\n");
     exit(1);
   }
 
-  /* -------------------------------------------------------------------- */
-  /*      Open the passed shapefile.                                      */
-  /* -------------------------------------------------------------------- */
-  hSHP = SHPOpen(argv[1], "rb");
-
+  // Open the passed shapefile.
+  SHPHandle hSHP = SHPOpen(argv[1], "rb");
   if (hSHP == NULL) {
     printf("Unable to open:%s\n", argv[1]);
     exit(1);
   }
 
+  int nEntities;
+  int nShapeType;
+  double adfMinBound[4];
+  double adfMaxBound[4];
   SHPGetInfo(hSHP, &nEntities, &nShapeType, adfMinBound, adfMaxBound);
 
-  /* -------------------------------------------------------------------- */
-  /*      Create output shapefile.                                        */
-  /* -------------------------------------------------------------------- */
-  hSHPOut = SHPCreate(argv[2], nShapeType);
-
+  // Create output shapefile.
+  SHPHandle hSHPOut = SHPCreate(argv[2], nShapeType);
   if (hSHPOut == NULL) {
     printf("Unable to create:%s\n", argv[2]);
+    SHPClose(hSHP);
     exit(1);
   }
 
-  /* -------------------------------------------------------------------- */
-  /*	Skim over the list of shapes, printing all the vertices.	*/
-  /* -------------------------------------------------------------------- */
-  for (i = 0; i < nEntities; i++) {
-    SHPObject *psShape;
-
-    psShape = SHPReadObject(hSHP, i);
+  // Skim over the list of shapes, printing all the vertices.
+  int nInvalidCount = 0;
+  for (int i = 0; i < nEntities; i++) {
+    SHPObject *psShape = SHPReadObject(hSHP, i);
     if (SHPRewindObject(hSHP, psShape))
       nInvalidCount++;
     SHPWriteObject(hSHPOut, -1, psShape);
