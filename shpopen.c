@@ -39,6 +39,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,7 +90,7 @@ typedef unsigned int int32;
 #elif defined(CPL_MSB)
 #define bBigEndian TRUE
 #else
-static int bBigEndian;
+static bool bBigEndian;
 #endif
 
 #ifdef __cplusplus
@@ -322,7 +323,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   /*      ensure the result string indicates binary to avoid common       */
   /*      problems on Windows.                                            */
   /* -------------------------------------------------------------------- */
-  int bLazySHXLoading = FALSE;
+  bool bLazySHXLoading = false;
   if (strcmp(pszAccess, "rb+") == 0 || strcmp(pszAccess, "r+b") == 0 ||
       strcmp(pszAccess, "r+") == 0)
     pszAccess = "r+b";
@@ -649,6 +650,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
 /*      in case when bRestoreSHX equals true.                           */
 /************************************************************************/
 
+// TODO(schwehr): bool bRestoreSHX
 SHPHandle SHPAPI_CALL SHPOpenLLEx(const char *pszLayer, const char *pszAccess,
                                   SAHooks *psHooks, int bRestoreSHX) {
   if (!bRestoreSHX)
@@ -883,6 +885,7 @@ void SHPAPI_CALL SHPClose(SHPHandle psSHP) {
 // simultaneously. The SHPObject padfZ and padfM members may be NULL depending
 // on the geometry type. It is illegal to free at hand any of the pointer
 // members of the SHPObject structure
+// TODO(schwehr): bool bFastMode
 void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, int bFastMode) {
   if (bFastMode) {
     if (hSHP->psCachedObject == SHPLIB_NULLPTR) {
@@ -1126,20 +1129,20 @@ SHPObject SHPAPI_CALL1(*)
   /* -------------------------------------------------------------------- */
   /*	Establish whether this shape type has M, and Z values.		*/
   /* -------------------------------------------------------------------- */
-  int bHasM;
-  int bHasZ;
+  bool bHasM;
+  bool bHasZ;
   if (nSHPType == SHPT_ARCM || nSHPType == SHPT_POINTM ||
       nSHPType == SHPT_POLYGONM || nSHPType == SHPT_MULTIPOINTM) {
-    bHasM = TRUE;
-    bHasZ = FALSE;
+    bHasM = true;
+    bHasZ = false;
   } else if (nSHPType == SHPT_ARCZ || nSHPType == SHPT_POINTZ ||
              nSHPType == SHPT_POLYGONZ || nSHPType == SHPT_MULTIPOINTZ ||
              nSHPType == SHPT_MULTIPATCH) {
-    bHasM = TRUE;
-    bHasZ = TRUE;
+    bHasM = true;
+    bHasZ = true;
   } else {
-    bHasM = FALSE;
-    bHasZ = FALSE;
+    bHasM = false;
+    bHasZ = false;
   }
 
   /* -------------------------------------------------------------------- */

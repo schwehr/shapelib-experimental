@@ -37,6 +37,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1594,6 +1595,8 @@ int SHPAPI_CALL DBFIsRecordDeleted(DBFHandle psDBF, int iShape) {
 /*                        DBFMarkRecordDeleted()                        */
 /************************************************************************/
 
+// TODO(schwehr): bIsDeleted -> bool
+// TODO(schwehr): Make return type bool
 int SHPAPI_CALL DBFMarkRecordDeleted(DBFHandle psDBF, int iShape,
                                      int bIsDeleted) {
   /* -------------------------------------------------------------------- */
@@ -1978,7 +1981,7 @@ int SHPAPI_CALL DBFAlterFieldDefn(DBFHandle psDBF, int iField,
       }
 
       memcpy(pszOldField, pszRecord + nOffset, nOldWidth);
-      const int bIsNULL = DBFIsValueNULL(chOldType, pszOldField);
+      const bool bIsNULL = DBFIsValueNULL(chOldType, pszOldField);
 
       if (nWidth != nOldWidth) {
         if ((chOldType == 'N' || chOldType == 'F' || chOldType == 'D') &&
@@ -2106,6 +2109,7 @@ int SHPAPI_CALL DBFAlterFieldDefn(DBFHandle psDBF, int iField,
 /*                    DBFSetWriteEndOfFileChar()                        */
 /************************************************************************/
 
+// TODO(schwehr): bIsDeleted -> bool
 void SHPAPI_CALL DBFSetWriteEndOfFileChar(DBFHandle psDBF, int bWriteFlag) {
   psDBF->bWriteEndOfFileChar = bWriteFlag;
 }

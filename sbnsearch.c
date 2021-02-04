@@ -37,6 +37,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -91,7 +92,7 @@ typedef struct {
   int nBinOffset; /* Offset in file of the start of the first bin. May be 0 if
                      node is empty. */
 
-  int bBBoxInit; /* TRUE if the following bounding box has been computed. */
+  bool bBBoxInit; /* TRUE if the following bounding box has been computed. */
   coord bMinX; /* Bounding box of the shapes directly attached to this node. */
   coord bMinY; /* This is *not* the theoretical footprint of the node. */
   coord bMaxX;
@@ -154,13 +155,13 @@ static void SwapWord(int length, void *wordP) {
 
 SBNSearchHandle SBNOpenDiskTree(const char *pszSBNFilename, SAHooks *psHooks) {
   // Establish the byte order on this machine.
-  int bBigEndian;
+  bool bBigEndian;
   {
     int i = 1;
     if (*REINTERPRET_CAST(unsigned char *, &i) == 1)
-      bBigEndian = FALSE;
+      bBigEndian = false;
     else
-      bBigEndian = TRUE;
+      bBigEndian = true;
   }
 
   /* -------------------------------------------------------------------- */
@@ -670,7 +671,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
       return FALSE;
     }
 
-    psNode->bBBoxInit = TRUE;
+    psNode->bBBoxInit = true;
   }
 
   /* -------------------------------------------------------------------- */
@@ -748,6 +749,7 @@ int *SBNSearchDiskTree(SBNSearchHandle hSBN, double *padfBoundsMin,
   const double dfDiskXExtent = hSBN->dfMaxX - hSBN->dfMinX;
   const double dfDiskYExtent = hSBN->dfMaxY - hSBN->dfMinY;
 
+  // TODO(schwehr): Rename.  These are not bools.
   int bMinX, bMaxX;
   if (dfDiskXExtent == 0.0) {
     bMinX = 0;
@@ -772,6 +774,7 @@ int *SBNSearchDiskTree(SBNSearchHandle hSBN, double *padfBoundsMin,
     }
   }
 
+  // TODO(schwehr): These are not bools
   int bMinY, bMaxY;
   if (dfDiskYExtent == 0.0) {
     bMinY = 0;
@@ -808,6 +811,7 @@ int *SBNSearchDiskTree(SBNSearchHandle hSBN, double *padfBoundsMin,
 /*                     SBNSearchDiskTreeInteger()                       */
 /************************************************************************/
 
+// TODO(schwehr): Rename b<inXX and bMinY.  They are not bools.
 int *SBNSearchDiskTreeInteger(SBNSearchHandle hSBN, int bMinX, int bMinY,
                               int bMaxX, int bMaxY, int *pnShapeCount) {
   *pnShapeCount = 0;
@@ -837,7 +841,7 @@ int *SBNSearchDiskTreeInteger(SBNSearchHandle hSBN, int bMinX, int bMinY,
   sSearch.nBytesRead = 0;
 #endif
 
-  const int bRet = SBNSearchDiskInternal(&sSearch, 0, 0, 0, 0, 255, 255);
+  const bool bRet = SBNSearchDiskInternal(&sSearch, 0, 0, 0, 0, 255, 255);
 
 #ifdef DEBUG_IO
   hSBN->nTotalBytesRead += sSearch.nBytesRead;

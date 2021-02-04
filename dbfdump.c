@@ -34,6 +34,7 @@
  */
 
 #include "shapefil.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,17 +43,17 @@ SHP_CVSID("$Id$")
 
 int main(int argc, char **argv) {
   // Handle arguments.
-  int bHeader = 0;
-  int bRaw = 0;
-  int bMultiLine = 0;
+  bool bHeader = false;
+  bool bRaw = false;
+  bool bMultiLine = false;
   char *pszFilename = NULL;
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-h") == 0)
-      bHeader = 1;
+      bHeader = true;
     else if (strcmp(argv[i], "-r") == 0)
-      bRaw = 1;
+      bRaw = true;
     else if (strcmp(argv[i], "-m") == 0)
-      bMultiLine = 1;
+      bMultiLine = true;
     else
       pszFilename = argv[i];
   }

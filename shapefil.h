@@ -193,12 +193,12 @@ typedef struct {
   double adBoundsMin[4];
   double adBoundsMax[4];
 
-  int bUpdated;
+  int bUpdated; // TODO(schwehr): bool
 
   unsigned char *pabyRec;
   int nBufSize;
 
-  int bFastModeReadObject;
+  int bFastModeReadObject; // TODO(schwehr): bool
   unsigned char *pabyObjectBuf;
   int nObjectBufSize;
   SHPObject *psCachedObject;
@@ -265,8 +265,8 @@ struct tagSHPObject {
   double dfZMax;
   double dfMMax;
 
-  int bMeasureIsUsed;
-  int bFastModeReadObject;
+  int bMeasureIsUsed;      // TODO(schwehr): bool
+  int bFastModeReadObject; // TODO(schwehr): bool
 };
 
 /* -------------------------------------------------------------------- */
@@ -278,6 +278,7 @@ struct tagSHPObject {
 SHPHandle SHPAPI_CALL SHPOpen(const char *pszShapeFile, const char *pszAccess);
 SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszShapeFile, const char *pszAccess,
                                 SAHooks *psHooks);
+// TODO(schwehr): bool for int bRestoreSHX
 SHPHandle SHPAPI_CALL SHPOpenLLEx(const char *pszShapeFile,
                                   const char *pszAccess, SAHooks *psHooks,
                                   int bRestoreSHX);
@@ -292,6 +293,7 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszShapeFile, const char *pszAccess,
  */
 /* type. It is illegal to free at hand any of the pointer members of the
  * SHPObject structure */
+// TODO(schwehr): bool for int bFastMode
 void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, int bFastMode);
 
 SHPHandle SHPAPI_CALL SHPCreate(const char *pszShapeFile, int nShapeType);
@@ -408,6 +410,7 @@ int SHPAPI_CALL1(*)
     SBNSearchDiskTree(SBNSearchHandle hSBN, double *padfBoundsMin,
                       double *padfBoundsMax, int *pnShapeCount);
 
+// TODO(schwehr): bool for int b*
 int SHPAPI_CALL1(*)
     SBNSearchDiskTreeInteger(SBNSearchHandle hSBN, int bMinX, int bMinY,
                              int bMaxX, int bMaxY, int *pnShapeCount);
@@ -437,14 +440,14 @@ typedef struct {
   char *pszHeader; /* Field descriptors */
 
   int nCurrentRecord;
-  int bCurrentRecordModified;
+  int bCurrentRecordModified; // TODO(schwehr): bool
   char *pszCurrentRecord;
 
   int nWorkFieldLength;
   char *pszWorkField;
 
-  int bNoHeader;
-  int bUpdated;
+  int bNoHeader; // TODO(schwehr): bool
+  int bUpdated;  // TODO(schwehr): bool
 
   union {
     double dfDoubleField;
@@ -458,9 +461,10 @@ typedef struct {
   int nUpdateMonth;         /* 1-12 */
   int nUpdateDay;           /* 1-31 */
 
+  // TODO(schwehr): bool
   int bWriteEndOfFileChar; /* defaults to TRUE */
 
-  int bRequireNextWriteSeek;
+  int bRequireNextWriteSeek; // TODO(schwehr): bool
 } DBFInfo;
 
 typedef DBFInfo *DBFHandle;
@@ -539,6 +543,7 @@ const char SHPAPI_CALL1(*) DBFReadTuple(DBFHandle psDBF, int hEntity);
 int SHPAPI_CALL DBFWriteTuple(DBFHandle psDBF, int hEntity, void *pRawTuple);
 
 int SHPAPI_CALL DBFIsRecordDeleted(DBFHandle psDBF, int iShape);
+// TODO(schwehr): bool
 int SHPAPI_CALL DBFMarkRecordDeleted(DBFHandle psDBF, int iShape,
                                      int bIsDeleted);
 
@@ -553,6 +558,7 @@ const char SHPAPI_CALL1(*) DBFGetCodePage(DBFHandle psDBF);
 void SHPAPI_CALL DBFSetLastModifiedDate(DBFHandle psDBF, int nYYSince1900,
                                         int nMM, int nDD);
 
+// TODO(schwehr): bool
 void SHPAPI_CALL DBFSetWriteEndOfFileChar(DBFHandle psDBF, int bWriteFlag);
 
 #ifdef __cplusplus
