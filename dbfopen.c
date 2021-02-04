@@ -127,7 +127,7 @@ static void DBFWriteHeader(DBFHandle psDBF) {
   if (!psDBF->bNoHeader)
     return;
 
-  psDBF->bNoHeader = FALSE;
+  psDBF->bNoHeader = false;
 
   /* -------------------------------------------------------------------- */
   /*	Initialize the file header information.				*/
@@ -186,7 +186,7 @@ static void DBFWriteHeader(DBFHandle psDBF) {
 
 static int DBFFlushRecord(DBFHandle psDBF) {
   if (psDBF->bCurrentRecordModified && psDBF->nCurrentRecord > -1) {
-    psDBF->bCurrentRecordModified = FALSE;
+    psDBF->bCurrentRecordModified = false;
 
     SAOffset nRecordOffset =
         psDBF->nRecordLength * STATIC_CAST(SAOffset, psDBF->nCurrentRecord) +
@@ -220,7 +220,7 @@ static int DBFFlushRecord(DBFHandle psDBF) {
     /* -------------------------------------------------------------------- */
     /*      If next op is also a write, allow possible skipping of FSeek.   */
     /* -------------------------------------------------------------------- */
-    psDBF->bRequireNextWriteSeek = FALSE;
+    psDBF->bRequireNextWriteSeek = false;
 
     if (psDBF->nCurrentRecord == psDBF->nRecords - 1) {
       if (psDBF->bWriteEndOfFileChar) {
@@ -267,7 +267,7 @@ static int DBFLoadRecord(DBFHandle psDBF, int iRecord) {
     /* -------------------------------------------------------------------- */
     /*      Require a seek for next write in case of mixed R/W operations.  */
     /* -------------------------------------------------------------------- */
-    psDBF->bRequireNextWriteSeek = TRUE;
+    psDBF->bRequireNextWriteSeek = true;
   }
 
   return TRUE;
@@ -399,9 +399,9 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
     return SHPLIB_NULLPTR;
   }
 
-  psDBF->bNoHeader = FALSE;
+  psDBF->bNoHeader = false;
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
+  psDBF->bCurrentRecordModified = false;
 
   /* -------------------------------------------------------------------- */
   /*  Read Table Header info                                              */
@@ -532,7 +532,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
 
   DBFSetWriteEndOfFileChar(psDBF, TRUE);
 
-  psDBF->bRequireNextWriteSeek = TRUE;
+  psDBF->bRequireNextWriteSeek = true;
 
   return (psDBF);
 }
@@ -684,10 +684,10 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
   psDBF->pszHeader = SHPLIB_NULLPTR;
 
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
+  psDBF->bCurrentRecordModified = false;
   psDBF->pszCurrentRecord = SHPLIB_NULLPTR;
 
-  psDBF->bNoHeader = TRUE;
+  psDBF->bNoHeader = true;
 
   psDBF->iLanguageDriver = ldid > 0 ? ldid : 0;
   psDBF->pszCodePage = SHPLIB_NULLPTR;
@@ -699,7 +699,7 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
 
   DBFSetWriteEndOfFileChar(psDBF, TRUE);
 
-  psDBF->bRequireNextWriteSeek = TRUE;
+  psDBF->bRequireNextWriteSeek = true;
 
   return (psDBF);
 }
@@ -821,7 +821,7 @@ int SHPAPI_CALL DBFAddNativeFieldType(DBFHandle psDBF, const char *pszFieldName,
   /*      Extend the required header information.                         */
   /* -------------------------------------------------------------------- */
   psDBF->nHeaderLength += XBASE_FLDHDR_SZ;
-  psDBF->bUpdated = FALSE;
+  psDBF->bUpdated = false;
 
   psDBF->pszHeader = STATIC_CAST(
       char *, SfRealloc(psDBF->pszHeader, psDBF->nFields * XBASE_FLDHDR_SZ));
@@ -899,12 +899,12 @@ int SHPAPI_CALL DBFAddNativeFieldType(DBFHandle psDBF, const char *pszFieldName,
   free(pszRecord);
 
   /* force update of header with new header, record length and new field */
-  psDBF->bNoHeader = TRUE;
+  psDBF->bNoHeader = true;
   DBFUpdateHeader(psDBF);
 
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = false;
+  psDBF->bUpdated = true;
 
   return (psDBF->nFields - 1);
 }
@@ -1217,8 +1217,8 @@ static int DBFWriteAttribute(DBFHandle psDBF, int hEntity, int iField,
   unsigned char *pabyRec =
       REINTERPRET_CAST(unsigned char *, psDBF->pszCurrentRecord);
 
-  psDBF->bCurrentRecordModified = TRUE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = true;
+  psDBF->bUpdated = true;
 
   /* -------------------------------------------------------------------- */
   /*      Translate NULL value to valid DBF file representation.          */
@@ -1348,8 +1348,8 @@ int SHPAPI_CALL DBFWriteAttributeDirectly(DBFHandle psDBF, int hEntity,
   strncpy(REINTERPRET_CAST(char *, pabyRec + psDBF->panFieldOffset[iField]),
           STATIC_CAST(const char *, pValue), j);
 
-  psDBF->bCurrentRecordModified = TRUE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = true;
+  psDBF->bUpdated = true;
 
   return (TRUE);
 }
@@ -1457,8 +1457,8 @@ int SHPAPI_CALL DBFWriteTuple(DBFHandle psDBF, int hEntity, void *pRawTuple) {
 
   memcpy(pabyRec, pRawTuple, psDBF->nRecordLength);
 
-  psDBF->bCurrentRecordModified = TRUE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = true;
+  psDBF->bUpdated = true;
 
   return (TRUE);
 }
@@ -1519,8 +1519,8 @@ DBFHandle SHPAPI_CALL DBFCloneEmpty(DBFHandle psDBF, const char *pszFilename) {
   memcpy(newDBF->pachFieldType, psDBF->pachFieldType,
          sizeof(char) * psDBF->nFields);
 
-  newDBF->bNoHeader = TRUE;
-  newDBF->bUpdated = TRUE;
+  newDBF->bNoHeader = true;
+  newDBF->bUpdated = true;
   newDBF->bWriteEndOfFileChar = psDBF->bWriteEndOfFileChar;
 
   DBFWriteHeader(newDBF);
@@ -1622,8 +1622,8 @@ int SHPAPI_CALL DBFMarkRecordDeleted(DBFHandle psDBF, int iShape,
     chNewFlag = ' ';
 
   if (psDBF->pszCurrentRecord[0] != chNewFlag) {
-    psDBF->bCurrentRecordModified = TRUE;
-    psDBF->bUpdated = TRUE;
+    psDBF->bCurrentRecordModified = true;
+    psDBF->bUpdated = true;
     psDBF->pszCurrentRecord[0] = chNewFlag;
   }
 
@@ -1704,7 +1704,7 @@ int SHPAPI_CALL DBFDeleteField(DBFHandle psDBF, int iField) {
     return TRUE;
 
   /* force update of header with new header and record length */
-  psDBF->bNoHeader = TRUE;
+  psDBF->bNoHeader = true;
   DBFUpdateHeader(psDBF);
 
   /* alloc record */
@@ -1751,8 +1751,8 @@ int SHPAPI_CALL DBFDeleteField(DBFHandle psDBF, int iField) {
   free(pszRecord);
 
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = false;
+  psDBF->bUpdated = true;
 
   return TRUE;
 }
@@ -1808,7 +1808,7 @@ int SHPAPI_CALL DBFReorderFields(DBFHandle psDBF, int *panMap) {
   /* we're done if we're dealing with not yet created .dbf */
   if (!(psDBF->bNoHeader && psDBF->nRecords == 0)) {
     /* force update of header with new header and record length */
-    psDBF->bNoHeader = TRUE;
+    psDBF->bNoHeader = true;
     DBFUpdateHeader(psDBF);
 
     /* alloc record */
@@ -1855,8 +1855,8 @@ int SHPAPI_CALL DBFReorderFields(DBFHandle psDBF, int *panMap) {
     free(panFieldDecimalsNew);
     free(pachFieldTypeNew);
     psDBF->nCurrentRecord = -1;
-    psDBF->bCurrentRecordModified = FALSE;
-    psDBF->bUpdated = FALSE;
+    psDBF->bCurrentRecordModified = false;
+    psDBF->bUpdated = false;
     return FALSE;
   }
 
@@ -1871,8 +1871,8 @@ int SHPAPI_CALL DBFReorderFields(DBFHandle psDBF, int *panMap) {
   psDBF->pachFieldType = pachFieldTypeNew;
 
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = false;
+  psDBF->bUpdated = true;
 
   return TRUE;
 }
@@ -1953,7 +1953,7 @@ int SHPAPI_CALL DBFAlterFieldDefn(DBFHandle psDBF, int iField,
     return TRUE;
 
   /* force update of header with new header and record length */
-  psDBF->bNoHeader = TRUE;
+  psDBF->bNoHeader = true;
   DBFUpdateHeader(psDBF);
 
   int errorAbort = FALSE;
@@ -2093,14 +2093,14 @@ int SHPAPI_CALL DBFAlterFieldDefn(DBFHandle psDBF, int iField,
 
   if (errorAbort) {
     psDBF->nCurrentRecord = -1;
-    psDBF->bCurrentRecordModified = TRUE;
-    psDBF->bUpdated = FALSE;
+    psDBF->bCurrentRecordModified = true;
+    psDBF->bUpdated = false;
 
     return FALSE;
   }
   psDBF->nCurrentRecord = -1;
-  psDBF->bCurrentRecordModified = FALSE;
-  psDBF->bUpdated = TRUE;
+  psDBF->bCurrentRecordModified = false;
+  psDBF->bUpdated = true;
 
   return TRUE;
 }

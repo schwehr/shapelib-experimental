@@ -38,6 +38,7 @@
  ******************************************************************************
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #ifdef USE_DBMALLOC
@@ -193,12 +194,12 @@ typedef struct {
   double adBoundsMin[4];
   double adBoundsMax[4];
 
-  int bUpdated; // TODO(schwehr): bool
+  bool bUpdated;
 
   unsigned char *pabyRec;
   int nBufSize;
 
-  int bFastModeReadObject; // TODO(schwehr): bool
+  bool bFastModeReadObject;
   unsigned char *pabyObjectBuf;
   int nObjectBufSize;
   SHPObject *psCachedObject;
@@ -265,8 +266,8 @@ struct tagSHPObject {
   double dfZMax;
   double dfMMax;
 
-  int bMeasureIsUsed;      // TODO(schwehr): bool
-  int bFastModeReadObject; // TODO(schwehr): bool
+  bool bMeasureIsUsed;
+  bool bFastModeReadObject;
 };
 
 /* -------------------------------------------------------------------- */
@@ -440,14 +441,14 @@ typedef struct {
   char *pszHeader; /* Field descriptors */
 
   int nCurrentRecord;
-  int bCurrentRecordModified; // TODO(schwehr): bool
+  bool bCurrentRecordModified;
   char *pszCurrentRecord;
 
   int nWorkFieldLength;
   char *pszWorkField;
 
-  int bNoHeader; // TODO(schwehr): bool
-  int bUpdated;  // TODO(schwehr): bool
+  bool bNoHeader;
+  bool bUpdated;
 
   union {
     double dfDoubleField;
@@ -461,10 +462,9 @@ typedef struct {
   int nUpdateMonth;         /* 1-12 */
   int nUpdateDay;           /* 1-31 */
 
-  // TODO(schwehr): bool
-  int bWriteEndOfFileChar; /* defaults to TRUE */
+  bool bWriteEndOfFileChar; /* defaults to true */
 
-  int bRequireNextWriteSeek; // TODO(schwehr): bool
+  bool bRequireNextWriteSeek;
 } DBFInfo;
 
 typedef DBFInfo *DBFHandle;

@@ -350,7 +350,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   /* -------------------------------------------------------------------- */
   SHPHandle psSHP = STATIC_CAST(SHPHandle, calloc(sizeof(SHPInfo), 1));
 
-  psSHP->bUpdated = FALSE;
+  psSHP->bUpdated = false;
   memcpy(&(psSHP->sHooks), psHooks, sizeof(SAHooks));
 
   /* -------------------------------------------------------------------- */
@@ -1124,7 +1124,7 @@ SHPObject SHPAPI_CALL1(*)
   SHPObject *psObject = STATIC_CAST(SHPObject *, calloc(1, sizeof(SHPObject)));
   psObject->nSHPType = nSHPType;
   psObject->nShapeId = nShapeId;
-  psObject->bMeasureIsUsed = FALSE;
+  psObject->bMeasureIsUsed = false;
 
   /* -------------------------------------------------------------------- */
   /*	Establish whether this shape type has M, and Z values.		*/
@@ -1198,7 +1198,7 @@ SHPObject SHPAPI_CALL1(*)
       memcpy(psObject->padfZ, padfZ, nSize);
     if (padfM != SHPLIB_NULLPTR && bHasM) {
       memcpy(psObject->padfM, padfM, nSize);
-      psObject->bMeasureIsUsed = TRUE;
+      psObject->bMeasureIsUsed = true;
     }
   }
 
@@ -1243,7 +1243,7 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
   assert(nShapeId == -1 || (nShapeId >= 0 && nShapeId < psSHP->nRecords));
 
   const int bFirstFeature = psSHP->nRecords == 0;
-  psSHP->bUpdated = TRUE;
+  psSHP->bUpdated = true;
 
   if (nShapeId != -1 && nShapeId >= psSHP->nRecords)
     nShapeId = -1;
@@ -1867,7 +1867,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     psShape = STATIC_CAST(SHPObject *, calloc(1, sizeof(SHPObject)));
   psShape->nShapeId = hEntity;
   psShape->nSHPType = nSHPType;
-  psShape->bMeasureIsUsed = FALSE;
+  psShape->bMeasureIsUsed = false;
   psShape->bFastModeReadObject = psSHP->bFastModeReadObject;
 
   // Extract vertices for a Polygon or Arc.
@@ -2097,7 +2097,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
         if (bBigEndian)
           SwapWord(8, psShape->padfM + i);
       }
-      psShape->bMeasureIsUsed = TRUE;
+      psShape->bMeasureIsUsed = true;
     } else if (psShape->bFastModeReadObject) {
       psShape->padfM = SHPLIB_NULLPTR;
     }
@@ -2254,7 +2254,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
         if (bBigEndian)
           SwapWord(8, psShape->padfM + i);
       }
-      psShape->bMeasureIsUsed = TRUE;
+      psShape->bMeasureIsUsed = true;
     } else if (psShape->bFastModeReadObject)
       psShape->padfM = SHPLIB_NULLPTR;
   }
@@ -2318,7 +2318,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
 
       if (bBigEndian)
         SwapWord(8, psShape->padfM);
-      psShape->bMeasureIsUsed = TRUE;
+      psShape->bMeasureIsUsed = true;
     }
 
     // Since no extents are supplied in the record, we will apply
@@ -2423,7 +2423,7 @@ void SHPAPI_CALL SHPDestroyObject(SHPObject *psShape) {
     return;
 
   if (psShape->bFastModeReadObject) {
-    psShape->bFastModeReadObject = FALSE;
+    psShape->bFastModeReadObject = false;
     return;
   }
 
