@@ -106,14 +106,9 @@ static int bBigEndian;
 /*      Swap a 2, 4 or 8 byte word.                                     */
 /************************************************************************/
 
-static void SwapWord(int length, void *wordP)
-
-{
-  int i;
-  uchar temp;
-
-  for (i = 0; i < length / 2; i++) {
-    temp = STATIC_CAST(uchar *, wordP)[i];
+static void SwapWord(int length, void *wordP) {
+  for (int i = 0; i < length / 2; i++) {
+    const uchar temp = STATIC_CAST(uchar *, wordP)[i];
     STATIC_CAST(uchar *, wordP)
     [i] = STATIC_CAST(uchar *, wordP)[length - i - 1];
     STATIC_CAST(uchar *, wordP)[length - i - 1] = temp;
@@ -127,9 +122,7 @@ static void SwapWord(int length, void *wordP)
 /*      a valid input.                                                  */
 /************************************************************************/
 
-static void *SfRealloc(void *pMem, int nNewSize)
-
-{
+static void *SfRealloc(void *pMem, int nNewSize) {
   if (pMem == SHPLIB_NULLPTR)
     return malloc(nNewSize);
   else
@@ -146,12 +139,6 @@ static void *SfRealloc(void *pMem, int nNewSize)
 void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
 
 {
-  uchar abyHeader[100] = {0};
-  int i;
-  int32 i32;
-  double dValue;
-  int32 *panSHX;
-
   if (psSHP->fpSHX == SHPLIB_NULLPTR) {
     psSHP->sHooks.Error("SHPWriteHeader failed : SHX file is closed");
     return;
@@ -161,10 +148,11 @@ void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
   /*      Prepare header block for .shp file.                             */
   /* -------------------------------------------------------------------- */
 
+  uchar abyHeader[100] = {0};
   abyHeader[2] = 0x27; /* magic cookie */
   abyHeader[3] = 0x0a;
 
-  i32 = psSHP->nFileSize / 2; /* file size */
+  int32 i32 = psSHP->nFileSize / 2; /* file size */
   ByteCopy(&i32, abyHeader + 24, 4);
   if (!bBigEndian)
     SwapWord(4, abyHeader + 24);
@@ -179,7 +167,7 @@ void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
   if (bBigEndian)
     SwapWord(4, abyHeader + 32);
 
-  dValue = psSHP->adBoundsMin[0]; /* set bounds */
+  double dValue = psSHP->adBoundsMin[0]; /* set bounds */
   ByteCopy(&dValue, abyHeader + 36, 8);
   if (bBigEndian)
     SwapWord(8, abyHeader + 36);
@@ -256,13 +244,14 @@ void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
   /* -------------------------------------------------------------------- */
   /*      Write out the .shx contents.                                    */
   /* -------------------------------------------------------------------- */
-  panSHX = STATIC_CAST(int32 *, malloc(sizeof(int32) * 2 * psSHP->nRecords));
+  int32 *panSHX =
+      STATIC_CAST(int32 *, malloc(sizeof(int32) * 2 * psSHP->nRecords));
   if (panSHX == SHPLIB_NULLPTR) {
     psSHP->sHooks.Error("Failure allocatin panSHX");
     return;
   }
 
-  for (i = 0; i < psSHP->nRecords; i++) {
+  for (int i = 0; i < psSHP->nRecords; i++) {
     panSHX[i * 2] = psSHP->panRecOffset[i] / 2;
     panSHX[i * 2 + 1] = psSHP->panRecSize[i] / 2;
     if (!bBigEndian)
@@ -295,9 +284,7 @@ void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
 /*                              SHPOpen()                               */
 /************************************************************************/
 
-SHPHandle SHPAPI_CALL SHPOpen(const char *pszLayer, const char *pszAccess)
-
-{
+SHPHandle SHPAPI_CALL SHPOpen(const char *pszLayer, const char *pszAccess) {
   SAHooks sHooks;
 
   SASetupDefaultHooks(&sHooks);
@@ -310,10 +297,9 @@ SHPHandle SHPAPI_CALL SHPOpen(const char *pszLayer, const char *pszAccess)
 /************************************************************************/
 
 static int SHPGetLenWithoutExtension(const char *pszBasename) {
-  int i;
-  int nLen = STATIC_CAST(int, strlen(pszBasename));
-  for (i = nLen - 1; i > 0 && pszBasename[i] != '/' && pszBasename[i] != '\\';
-       i--) {
+  const int nLen = STATIC_CAST(int, strlen(pszBasename));
+  for (int i = nLen - 1;
+       i > 0 && pszBasename[i] != '/' && pszBasename[i] != '\\'; i--) {
     if (pszBasename[i] == '.') {
       return i;
     }
@@ -329,23 +315,14 @@ static int SHPGetLenWithoutExtension(const char *pszBasename) {
 /************************************************************************/
 
 SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
-                                SAHooks *psHooks)
-
-{
-  char *pszFullname;
-  SHPHandle psSHP;
-
-  uchar *pabyBuf;
-  int i;
-  double dValue;
-  int bLazySHXLoading = FALSE;
-  int nLenWithoutExtension;
+                                SAHooks *psHooks) {
 
   /* -------------------------------------------------------------------- */
   /*      Ensure the access string is one of the legal ones.  We          */
   /*      ensure the result string indicates binary to avoid common       */
   /*      problems on Windows.                                            */
   /* -------------------------------------------------------------------- */
+  int bLazySHXLoading = FALSE;
   if (strcmp(pszAccess, "rb+") == 0 || strcmp(pszAccess, "r+b") == 0 ||
       strcmp(pszAccess, "r+") == 0)
     pszAccess = "r+b";
@@ -358,17 +335,19 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
 /*  Establish the byte order on this machine.           */
 /* -------------------------------------------------------------------- */
 #if !defined(bBigEndian)
-  i = 1;
-  if (*((uchar *)&i) == 1)
-    bBigEndian = FALSE;
-  else
-    bBigEndian = TRUE;
+  {
+    int i = 1;
+    if (*((uchar *)&i) == 1)
+      bBigEndian = FALSE;
+    else
+      bBigEndian = TRUE;
+  }
 #endif
 
   /* -------------------------------------------------------------------- */
   /*  Initialize the info structure.                  */
   /* -------------------------------------------------------------------- */
-  psSHP = STATIC_CAST(SHPHandle, calloc(sizeof(SHPInfo), 1));
+  SHPHandle psSHP = STATIC_CAST(SHPHandle, calloc(sizeof(SHPInfo), 1));
 
   psSHP->bUpdated = FALSE;
   memcpy(&(psSHP->sHooks), psHooks, sizeof(SAHooks));
@@ -377,8 +356,8 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   /*  Open the .shp and .shx files.  Note that files pulled from  */
   /*  a PC to Unix with upper case filenames won't work!      */
   /* -------------------------------------------------------------------- */
-  nLenWithoutExtension = SHPGetLenWithoutExtension(pszLayer);
-  pszFullname = STATIC_CAST(char *, malloc(nLenWithoutExtension + 5));
+  int nLenWithoutExtension = SHPGetLenWithoutExtension(pszLayer);
+  char *pszFullname = STATIC_CAST(char *, malloc(nLenWithoutExtension + 5));
   memcpy(pszFullname, pszLayer, nLenWithoutExtension);
   memcpy(pszFullname + nLenWithoutExtension, ".shp", 5);
   psSHP->fpSHP = psSHP->sHooks.FOpen(pszFullname, pszAccess);
@@ -432,7 +411,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   /* -------------------------------------------------------------------- */
   /*  Read the file size from the SHP file.               */
   /* -------------------------------------------------------------------- */
-  pabyBuf = STATIC_CAST(uchar *, malloc(100));
+  uchar *pabyBuf = STATIC_CAST(uchar *, malloc(100));
   if (psSHP->sHooks.FRead(pabyBuf, 100, 1, psSHP->fpSHP) != 1) {
     psSHP->sHooks.Error(".shp file is unreadable, or corrupt.");
     psSHP->sHooks.FClose(psSHP->fpSHP);
@@ -506,6 +485,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   /* -------------------------------------------------------------------- */
   if (bBigEndian)
     SwapWord(8, pabyBuf + 36);
+  double dValue;
   memcpy(&dValue, pabyBuf + 36, 8);
   psSHP->adBoundsMin[0] = dValue;
 
@@ -622,13 +602,13 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     psSHP->fpSHX = SHPLIB_NULLPTR;
   }
 
-  for (i = 0; i < psSHP->nRecords; i++) {
-    unsigned int nOffset, nLength;
-
+  for (int i = 0; i < psSHP->nRecords; i++) {
+    unsigned int nOffset;
     memcpy(&nOffset, pabyBuf + i * 8, 4);
     if (!bBigEndian)
       SwapWord(4, &nOffset);
 
+    unsigned int nLength;
     memcpy(&nLength, pabyBuf + i * 8 + 4, 4);
     if (!bBigEndian)
       SwapWord(4, &nLength);
@@ -670,9 +650,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
 /************************************************************************/
 
 SHPHandle SHPAPI_CALL SHPOpenLLEx(const char *pszLayer, const char *pszAccess,
-                                  SAHooks *psHooks, int bRestoreSHX)
-
-{
+                                  SAHooks *psHooks, int bRestoreSHX) {
   if (!bRestoreSHX)
     return SHPOpenLL(pszLayer, pszAccess, psHooks);
   else {
@@ -695,24 +673,6 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
                               SAHooks *psHooks)
 
 {
-  char *pszFullname;
-  SAFile fpSHP, fpSHX;
-
-  uchar *pabyBuf;
-  int nLenWithoutExtension;
-  unsigned int nSHPFilesize;
-
-  unsigned int nCurrentRecordOffset = 0;
-  unsigned int nCurrentSHPOffset = 100;
-  unsigned int nRealSHXContentSize = 100;
-
-  const char pszSHXAccess[] = "w+b";
-  char *pabySHXHeader;
-  char abyReadedRecord[8];
-  unsigned int niRecord = 0;
-  unsigned int nRecordLength = 0;
-  unsigned int nRecordOffset = 50;
-
   /* -------------------------------------------------------------------- */
   /*      Ensure the access string is one of the legal ones.  We          */
   /*      ensure the result string indicates binary to avoid common       */
@@ -742,11 +702,19 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
   /*  Open the .shp file.  Note that files pulled from                    */
   /*  a PC to Unix with upper case filenames won't work!                  */
   /* -------------------------------------------------------------------- */
-  nLenWithoutExtension = SHPGetLenWithoutExtension(pszLayer);
-  pszFullname = STATIC_CAST(char *, malloc(nLenWithoutExtension + 5));
+
+  uchar *pabyBuf;
+  unsigned int nSHPFilesize;
+
+  unsigned int nCurrentRecordOffset = 0;
+  unsigned int nCurrentSHPOffset = 100;
+  unsigned int nRealSHXContentSize = 100;
+
+  int nLenWithoutExtension = SHPGetLenWithoutExtension(pszLayer);
+  char *pszFullname = STATIC_CAST(char *, malloc(nLenWithoutExtension + 5));
   memcpy(pszFullname, pszLayer, nLenWithoutExtension);
   memcpy(pszFullname + nLenWithoutExtension, ".shp", 5);
-  fpSHP = psHooks->FOpen(pszFullname, pszAccess);
+  SAFile fpSHP = psHooks->FOpen(pszFullname, pszAccess);
   if (fpSHP == SHPLIB_NULLPTR) {
     memcpy(pszFullname + nLenWithoutExtension, ".SHP", 5);
     fpSHP = psHooks->FOpen(pszFullname, pszAccess);
@@ -789,7 +757,8 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
     nSHPFilesize = (UINT_MAX / 2) * 2;
 
   memcpy(pszFullname + nLenWithoutExtension, ".shx", 5);
-  fpSHX = psHooks->FOpen(pszFullname, pszSHXAccess);
+  const char pszSHXAccess[] = "w+b";
+  SAFile fpSHX = psHooks->FOpen(pszFullname, pszSHXAccess);
   if (fpSHX == SHPLIB_NULLPTR) {
     size_t nMessageLen = strlen(pszFullname) * 2 + 256;
     char *pszMessage = STATIC_CAST(char *, malloc(nMessageLen));
@@ -811,16 +780,21 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
   /*  Open SHX and create it using SHP file content.                      */
   /* -------------------------------------------------------------------- */
   psHooks->FSeek(fpSHP, 100, 0);
-  pabySHXHeader = STATIC_CAST(char *, malloc(100));
+  char *pabySHXHeader = STATIC_CAST(char *, malloc(100));
   memcpy(pabySHXHeader, pabyBuf, 100);
   psHooks->FWrite(pabySHXHeader, 100, 1, fpSHX);
   free(pabyBuf);
+
+  unsigned int niRecord = 0;
+  unsigned int nRecordLength = 0;
+  unsigned int nRecordOffset = 50;
 
   while (nCurrentSHPOffset < nSHPFilesize) {
     if (psHooks->FRead(&niRecord, 4, 1, fpSHP) == 1 &&
         psHooks->FRead(&nRecordLength, 4, 1, fpSHP) == 1) {
       if (!bBigEndian)
         SwapWord(4, &nRecordOffset);
+      char abyReadedRecord[8];
       memcpy(abyReadedRecord, &nRecordOffset, 4);
       memcpy(abyReadedRecord + 4, &nRecordLength, 4);
 
