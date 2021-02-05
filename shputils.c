@@ -53,16 +53,12 @@
  */
 
 #include "shapefil.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 SHP_CVSID("$Id$")
-
-#ifndef FALSE
-#define FALSE 0
-#define TRUE 1
-#endif
 
 char infile[80], outfile[80], temp[400];
 
@@ -93,31 +89,34 @@ int j, tj, jWidth, jDecimals, jRecord;
 /* -------------------------------------------------------------------- */
 /* Variables for the DESCRIBE function */
 /* -------------------------------------------------------------------- */
-int ilist = FALSE, iall = FALSE;
+bool iall = false;
 /* -------------------------------------------------------------------- */
 /* Variables for the SELECT function */
 /* -------------------------------------------------------------------- */
-int found = FALSE, newdbf = FALSE;
+bool found = false;
+bool newdbf = false;
 char selectitem[40], *cpt;
 long int selectvalues[150], selcount = 0;
-int iselect = FALSE, iselectitem = -1;
-int iunselect = FALSE;
+bool iselect = false;
+int iselectitem = -1;
+bool iunselect = false;
 
 /* -------------------------------------------------------------------- */
 /* Variables for the CLIP and ERASE functions */
 /* -------------------------------------------------------------------- */
 double cxmin, cymin, cxmax, cymax;
-int iclip = FALSE, ierase = FALSE;
-int itouch = FALSE, iinside = FALSE, icut = FALSE;
-int ibound = FALSE, ipoly = FALSE;
+bool iclip = false;
+bool ierase = false;
+bool itouch = false;
+bool iinside = false;
+bool icut = false;
 char clipfile[80];
 
 /* -------------------------------------------------------------------- */
 /* Variables for the FACTOR function */
 /* -------------------------------------------------------------------- */
 double infactor, outfactor, factor = 0; /* NO FACTOR */
-int iunit = FALSE;
-int ifactor = FALSE;
+bool iunit = false;
 
 /* -------------------------------------------------------------------- */
 /* Variables for the SHIFT function */
@@ -129,8 +128,7 @@ double xshift = 0, yshift = 0; /* NO SHIFT */
 /*	filename, strip it off and add the new extension                */
 /* -------------------------------------------------------------------- */
 void setext(char *pt, char *ext) {
-  int i;
-  for (i = strlen(pt) - 1;
+  for (int i = strlen(pt) - 1;
        i > 0 && pt[i] != '.' && pt[i] != '/' && pt[i] != '\\'; i--) {
   }
 
@@ -161,9 +159,9 @@ void openfiles() {
   if (strcmp(outfile, "")) {
     setext(outfile, "dbf");
     hDBFappend = DBFOpen(outfile, "rb+");
-    newdbf = 0;
+    newdbf = false;
     if (hDBFappend == NULL) {
-      newdbf = 1;
+      newdbf = true;
       hDBFappend = DBFCreate(outfile);
       if (hDBFappend == NULL) {
         printf("ERROR: Unable to open the append DBF:%s\n", outfile);
@@ -225,7 +223,7 @@ void mergefields() {
   jRecord = DBFGetRecordCount(hDBFappend);
   for (i = 0; i < ti; i++) {
     iType = DBFGetFieldInfo(hDBF, i, iszTitle, &iWidth, &iDecimals);
-    found = FALSE;
+    found = false;
     {
       for (j = 0; j < tj; j++) /* Search all field names for a match */
       {
@@ -239,7 +237,7 @@ void mergefields() {
                (Try to guess the correct field by position) */
           } else {
             pt[i] = j;
-            found = TRUE;
+            found = true;
           }
         }
       }
@@ -250,7 +248,7 @@ void mergefields() {
       jType = DBFGetFieldInfo(hDBFappend, j, jszTitle, &jWidth, &jDecimals);
       if (iType == jType) {
         pt[i] = i;
-        found = 1;
+        found = true;
       }
     }
     if ((!found) && jRecord == 0) /* Add missing field to the append table */
@@ -416,8 +414,8 @@ void findselect() {
   }
   if (iselectitem == -1) {
     printf("Warning: Item not found for selection (%s)\n", selectitem);
-    iselect = FALSE;
-    iall = FALSE;
+    iselect = false;
+    iall = false;
     showitems();
     printf("Continued... (Selecting entire file)\n");
   }
@@ -431,7 +429,7 @@ int selectrec() {
   switch (ty) {
   case FTString:
     puts("Invalid Item");
-    iselect = FALSE;
+    iselect = false;
     break;
   case FTInteger:
     value = DBFReadIntegerAttribute(hDBF, iRecord, iselectitem);
@@ -446,7 +444,7 @@ int selectrec() {
     break;
   case FTDouble:
     puts("Invalid Item");
-    iselect = FALSE;
+    iselect = false;
     break;
   }
   if (iunselect)
@@ -462,7 +460,7 @@ void check_theme_bnd() {
     if (ierase)
       nEntities = 0; /** SKIP THEME  **/
     else
-      iclip = FALSE; /** WRITE THEME (Clip not needed) **/
+      iclip = false; /** WRITE THEME (Clip not needed) **/
   }
 
   if (((adfBoundsMin[0] < cxmin) && (adfBoundsMax[0] < cxmin)) ||
@@ -471,7 +469,7 @@ void check_theme_bnd() {
       ((adfBoundsMin[1] > cymax) &&
        (adfBoundsMax[1] > cymax))) { /** Theme is totally outside clip area **/
     if (ierase)
-      iclip = FALSE; /** WRITE THEME (Clip not needed) **/
+      iclip = false; /** WRITE THEME (Clip not needed) **/
     else
       nEntities = 0; /** SKIP THEME  **/
   }
@@ -481,10 +479,6 @@ void check_theme_bnd() {
 }
 
 int clip_boundary() {
-  int inside;
-  int prev_outside;
-  int i2;
-  int j2;
 
   /*** FIRST check the boundary of the feature ***/
   if (((psCShape->dfXMin < cxmin) && (psCShape->dfXMax < cxmin)) ||
@@ -537,7 +531,7 @@ int clip_boundary() {
         return (1); /** WRITE RECORD **/
     }
 
-    for (j2 = 0; j2 < psCShape->nVertices;
+    for (int j2 = 0; j2 < psCShape->nVertices;
          j2++) { /** At least one vertex must be inside the clip boundary **/
       if ((psCShape->padfX[j2] >= cxmin && psCShape->padfX[j2] <= cxmax) ||
           (psCShape->padfY[j2] >= cymin && psCShape->padfY[j2] <= cymax)) {
@@ -558,11 +552,12 @@ int clip_boundary() {
   if (icut) { /** CUT **/
     /*** Check each vertex in the feature with the Boundary and "CUT" ***/
     /*** THIS CODE WAS NOT COMPLETED!  READ NOTE AT THE BOTTOM ***/
-    i2 = 0;
-    prev_outside = FALSE;
-    for (j2 = 0; j2 < psCShape->nVertices; j2++) {
-      inside = psCShape->padfX[j2] >= cxmin && psCShape->padfX[j2] <= cxmax &&
-               psCShape->padfY[j2] >= cymin && psCShape->padfY[j2] <= cymax;
+    int i2 = 0;
+    bool prev_outside = false;
+    for (int j2 = 0; j2 < psCShape->nVertices; j2++) {
+      bool inside =
+          psCShape->padfX[j2] >= cxmin && psCShape->padfX[j2] <= cxmax &&
+          psCShape->padfY[j2] >= cymin && psCShape->padfY[j2] <= cymax;
 
       if (ierase)
         inside = (!inside);
@@ -570,7 +565,7 @@ int clip_boundary() {
         if (i2 != j2) {
           if (prev_outside) {
             /*** AddIntersection(i2); ***/ /*** Add intersection ***/
-            prev_outside = FALSE;
+            prev_outside = false;
           }
           psCShape->padfX[i2] = psCShape->padfX[j2]; /** move vertex **/
           psCShape->padfY[i2] = psCShape->padfY[j2];
@@ -582,7 +577,7 @@ int clip_boundary() {
                                             j2==i2-1) ***/
           /*** Also a polygon may overlap twice and will split into a several
            * parts  ***/
-          prev_outside = TRUE;
+          prev_outside = true;
         }
       }
     }
@@ -606,7 +601,6 @@ int clip_boundary() {
   return 0;
 }
 
-#define NKEYS (sizeof(unitkeytab) / sizeof(struct unitkey))
 double findunit(char *unit) {
   struct unitkey {
     char *name;
@@ -622,7 +616,7 @@ double findunit(char *unit) {
                     "MILES",       6336000};
 
   double unitfactor = 0;
-  for (j = 0; j < NKEYS; j++) {
+  for (j = 0; j < (sizeof(unitkeytab) / sizeof(struct unitkey)); j++) {
     if (strncasecmp2(unit, unitkeytab[j].name, 0) == 0)
       unitfactor = unitkeytab[j].value;
   }
@@ -750,14 +744,15 @@ int main(int argc, char **argv) {
   if (argc < 2)
     error();
 
+  bool ilist = false;
   strcpy(infile, argv[1]);
   if (argc > 2) {
     strcpy(outfile, argv[2]);
     if (strncasecmp2(outfile, "LIST", 0) == 0) {
-      ilist = TRUE;
+      ilist = true;
     }
     if (strncasecmp2(outfile, "ALL", 0) == 0) {
-      iall = TRUE;
+      iall = true;
     }
   }
   if (ilist || iall || argc == 2) {
@@ -771,7 +766,7 @@ int main(int argc, char **argv) {
     if ((strncasecmp2(argv[i], "SEL", 3) == 0) ||
         (strncasecmp2(argv[i], "UNSEL", 5) == 0)) {
       if (strncasecmp2(argv[i], "UNSEL", 5) == 0)
-        iunselect = TRUE;
+        iunselect = true;
       i++;
       if (i >= argc)
         error();
@@ -793,12 +788,12 @@ int main(int argc, char **argv) {
         tj = atoi(cpt);
         selcount++;
       }
-      iselect = TRUE;
+      iselect = true;
     } /*** End SEL & UNSEL ***/
     else if ((strncasecmp2(argv[i], "CLIP", 4) == 0) ||
              (strncasecmp2(argv[i], "ERASE", 5) == 0)) {
       if (strncasecmp2(argv[i], "ERASE", 5) == 0)
-        ierase = TRUE;
+        ierase = true;
       i++;
       if (i >= argc)
         error();
@@ -821,7 +816,6 @@ int main(int argc, char **argv) {
         cymax = adfBoundsMax[1];
         printf("Theme Clip Boundary: (%lf,%lf) - (%lf,%lf)\n", cxmin, cymin,
                cxmax, cymax);
-        ibound = TRUE;
       } else { /*** xmin,ymin,xmax,ymax ***/
         sscanf(argv[i], "%lf", &cymin);
         i++;
@@ -838,14 +832,14 @@ int main(int argc, char **argv) {
       if (i >= argc)
         error();
       if (strncasecmp2(argv[i], "CUT", 3) == 0)
-        icut = TRUE;
+        icut = true;
       else if (strncasecmp2(argv[i], "TOUCH", 5) == 0)
-        itouch = TRUE;
+        itouch = true;
       else if (strncasecmp2(argv[i], "INSIDE", 6) == 0)
-        iinside = TRUE;
+        iinside = true;
       else
         error();
-      iclip = TRUE;
+      iclip = true;
     } /*** End CLIP & ERASE ***/
     else if (strncasecmp2(argv[i], "FACTOR", 0) == 0) {
       i++;
@@ -854,7 +848,7 @@ int main(int argc, char **argv) {
       infactor = findunit(argv[i]);
       if (infactor == 0)
         error();
-      iunit = TRUE;
+      iunit = true;
       i++;
       if (i >= argc)
         error();
@@ -872,8 +866,7 @@ int main(int argc, char **argv) {
         factor = infactor / outfactor;
       }
       printf("Output file coordinate values will be factored by %lg\n", factor);
-      ifactor = (factor != 1); /* True if a valid factor */
-    }                          /*** End FACTOR ***/
+    } // End FACTOR
     else if (strncasecmp2(argv[i], "SHIFT", 5) == 0) {
       i++;
       if (i >= argc)
@@ -883,7 +876,7 @@ int main(int argc, char **argv) {
       if (i >= argc)
         error();
       sscanf(argv[i], "%lf", &yshift);
-      iunit = TRUE;
+      iunit = true;
       printf("X Shift: %lg   Y Shift: %lg\n", xshift, yshift);
     } /*** End SHIFT ***/
     else {

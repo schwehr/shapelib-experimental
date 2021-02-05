@@ -55,8 +55,8 @@ typedef unsigned int int32;
 #endif
 
 #ifndef FALSE
-#define FALSE 0
-#define TRUE 1
+#define FALSE false
+#define TRUE true
 #endif
 
 #define ByteCopy(a, b, c) memcpy(b, a, c)
@@ -86,9 +86,9 @@ typedef unsigned int int32;
 #endif
 
 #if defined(CPL_LSB)
-#define bBigEndian FALSE
+#define bBigEndian false
 #elif defined(CPL_MSB)
-#define bBigEndian TRUE
+#define bBigEndian true
 #else
 static bool bBigEndian;
 #endif
@@ -339,9 +339,9 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   {
     int i = 1;
     if (*((uchar *)&i) == 1)
-      bBigEndian = FALSE;
+      bBigEndian = false;
     else
-      bBigEndian = TRUE;
+      bBigEndian = true;
   }
 #endif
 
@@ -652,7 +652,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
 
 // TODO(schwehr): bool bRestoreSHX
 SHPHandle SHPAPI_CALL SHPOpenLLEx(const char *pszLayer, const char *pszAccess,
-                                  SAHooks *psHooks, int bRestoreSHX) {
+                                  SAHooks *psHooks, bool bRestoreSHX) {
   if (!bRestoreSHX)
     return SHPOpenLL(pszLayer, pszAccess, psHooks);
   else {
@@ -694,9 +694,9 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
   {
     int i = 1;
     if (*((uchar *)&i) == 1)
-      bBigEndian = FALSE;
+      bBigEndian = false;
     else
-      bBigEndian = TRUE;
+      bBigEndian = true;
   }
 #endif
 
@@ -880,13 +880,13 @@ void SHPAPI_CALL SHPClose(SHPHandle psSHP) {
 /*                    SHPSetFastModeReadObject()                        */
 /************************************************************************/
 
-// If setting bFastMode = TRUE, the content of SHPReadObject() is owned by the
+// If setting bFastMode = true, the content of SHPReadObject() is owned by the
 // SHPHandle. So you cannot have 2 valid instances of SHPReadObject()
 // simultaneously. The SHPObject padfZ and padfM members may be NULL depending
 // on the geometry type. It is illegal to free at hand any of the pointer
 // members of the SHPObject structure
 // TODO(schwehr): bool bFastMode
-void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, int bFastMode) {
+void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, bool bFastMode) {
   if (bFastMode) {
     if (hSHP->psCachedObject == SHPLIB_NULLPTR) {
       hSHP->psCachedObject =
@@ -952,9 +952,9 @@ SHPHandle SHPAPI_CALL SHPCreateLL(const char *pszLayer, int nShapeType,
   {
     int i = 1;
     if (*((uchar *)&i) == 1)
-      bBigEndian = FALSE;
+      bBigEndian = false;
     else
-      bBigEndian = TRUE;
+      bBigEndian = true;
   }
 #endif
 
@@ -1481,7 +1481,7 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
     // Not much to do for null geometries.
     nRecordSize = 12;
   } else {
-    assert(FALSE); // Unknown type
+    assert(false); // Unknown type
   }
 
   /* -------------------------------------------------------------------- */
@@ -1492,14 +1492,14 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
   /*      write at the end.                                               */
   /* -------------------------------------------------------------------- */
   SAOffset nRecordOffset;
-  int bAppendToLastRecord = FALSE;
-  int bAppendToFile = FALSE;
+  bool bAppendToLastRecord = false;
+  bool bAppendToFile = false;
 
   if (nShapeId != -1 &&
       psSHP->panRecOffset[nShapeId] + psSHP->panRecSize[nShapeId] + 8 ==
           psSHP->nFileSize) {
     nRecordOffset = psSHP->panRecOffset[nShapeId];
-    bAppendToLastRecord = TRUE;
+    bAppendToLastRecord = true;
   } else if (nShapeId == -1 || psSHP->panRecSize[nShapeId] < nRecordSize - 8) {
     if (psSHP->nFileSize > UINT_MAX - nRecordSize) {
       char str[128];
@@ -1513,7 +1513,7 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
       return -1;
     }
 
-    bAppendToFile = TRUE;
+    bAppendToFile = true;
     nRecordOffset = psSHP->nFileSize;
   } else {
     nRecordOffset = psSHP->panRecOffset[nShapeId];
@@ -2468,7 +2468,7 @@ static int SHPRewindIsInnerRing(const SHPObject *psObject, int iOpRing,
   // we need to fix this to handle multiple island polygons and
   // unordered sets of rings.
 
-  int bInner = FALSE;
+  int bInner = FALSE; // TODO(schwehr): bool?
   for (int iCheckRing = 0; iCheckRing < psObject->nParts; iCheckRing++) {
     if (iCheckRing == iOpRing)
       continue;
@@ -2545,7 +2545,7 @@ int SHPAPI_CALL SHPRewindObject(CPL_UNUSED SHPHandle hSHP,
     if (nVertCount < 2)
       continue;
 
-    int bInner = FALSE;
+    int bInner = 0; // TODO(schwehr): Was this supposed to be bool?
 
     for (int iVert = nVertStart; iVert + 1 < nVertStart + nVertCount; ++iVert) {
       // Use point in the middle of segment to avoid testing common points of

@@ -44,11 +44,6 @@
 
 SHP_CVSID("$Id$")
 
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
-#endif
-
 #ifndef USE_CPL
 #if defined(_MSC_VER)
 #if _MSC_VER < 1900
@@ -92,7 +87,7 @@ typedef struct {
   int nBinOffset; /* Offset in file of the start of the first bin. May be 0 if
                      node is empty. */
 
-  bool bBBoxInit; /* TRUE if the following bounding box has been computed. */
+  bool bBBoxInit; /* true if the following bounding box has been computed. */
   coord bMinX; /* Bounding box of the shapes directly attached to this node. */
   coord bMinY; /* This is *not* the theoretical footprint of the node. */
   coord bMaxX;
@@ -436,7 +431,7 @@ static void *SfRealloc(void *pMem, int nNewSize) {
 /*                         SBNAddShapeId()                              */
 /************************************************************************/
 
-static int SBNAddShapeId(SearchStruct *psSearch, int nShapeId) {
+static bool SBNAddShapeId(SearchStruct *psSearch, int nShapeId) {
   if (psSearch->nShapeCount == psSearch->nShapeAlloc) {
     psSearch->nShapeAlloc =
         STATIC_CAST(int, ((psSearch->nShapeCount + 100) * 5) / 4);
@@ -445,14 +440,14 @@ static int SBNAddShapeId(SearchStruct *psSearch, int nShapeId) {
                                      psSearch->nShapeAlloc * sizeof(int)));
     if (pNewPtr == SHPLIB_NULLPTR) {
       psSearch->hSBN->sHooks.Error("Out of memory error");
-      return FALSE;
+      return false;
     }
     psSearch->panShapeId = pNewPtr;
   }
 
   psSearch->panShapeId[psSearch->nShapeCount] = nShapeId;
   psSearch->nShapeCount++;
-  return TRUE;
+  return true;
 }
 
 /************************************************************************/
@@ -470,9 +465,9 @@ static int SBNAddShapeId(SearchStruct *psSearch, int nShapeId) {
     ((_bMinY == _bMaxY || bSearchMinY == bSearchMaxY) &&                       \
      bSearchMinY <= _bMaxY && bSearchMaxY >= _bMinY)))
 
-static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
-                                 int nNodeId, coord bNodeMinX, coord bNodeMinY,
-                                 coord bNodeMaxX, coord bNodeMaxY) {
+static bool SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
+                                  int nNodeId, coord bNodeMinX, coord bNodeMinY,
+                                  coord bNodeMaxX, coord bNodeMaxY) {
   coord bSearchMinX = psSearch->bMinX;
   coord bSearchMinY = psSearch->bMinY;
   coord bSearchMaxX = psSearch->bMaxX;
@@ -520,7 +515,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
                nShapeId, bMinX, bMinY, bMaxX, bMaxY);*/
 
         if (!SBNAddShapeId(psSearch, nShapeId))
-          return FALSE;
+          return false;
       }
 
       pabyShapeDesc += 8;
@@ -553,14 +548,14 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
         hSBN->sHooks.Error("I/O error");
         free(psNode->pabyShapeDesc);
         psNode->pabyShapeDesc = SHPLIB_NULLPTR;
-        return FALSE;
+        return false;
       }
 
       if (READ_MSB_INT(abyBinHeader + 0) != psNode->nBinStart + i) {
         hSBN->sHooks.Error("Unexpected bin id");
         free(psNode->pabyShapeDesc);
         psNode->pabyShapeDesc = SHPLIB_NULLPTR;
-        return FALSE;
+        return false;
       }
 
       int nBinSize = READ_MSB_INT(abyBinHeader + 4);
@@ -573,14 +568,14 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
         hSBN->sHooks.Error("Unexpected bin size");
         free(psNode->pabyShapeDesc);
         psNode->pabyShapeDesc = SHPLIB_NULLPTR;
-        return FALSE;
+        return false;
       }
 
       if (nShapeCountAcc + nShapes > psNode->nShapeCount) {
         free(psNode->pabyShapeDesc);
         psNode->pabyShapeDesc = SHPLIB_NULLPTR;
         hSBN->sHooks.Error("Inconsistent shape count for bin");
-        return FALSE;
+        return false;
       }
 
       uchar *pabyBinShape;
@@ -598,7 +593,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
         hSBN->sHooks.Error("I/O error");
         free(psNode->pabyShapeDesc);
         psNode->pabyShapeDesc = SHPLIB_NULLPTR;
-        return FALSE;
+        return false;
       }
 
       nShapeCountAcc += nShapes;
@@ -634,7 +629,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
             hSBN->sHooks.Error("Invalid shape bounding box in bin");
             free(psNode->pabyShapeDesc);
             psNode->pabyShapeDesc = SHPLIB_NULLPTR;
-            return FALSE;
+            return false;
           }
 #endif
           if (bMinX < psNode->bMinX)
@@ -657,7 +652,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
               nShapeId, bMinX, bMinY, bMaxX, bMaxY);*/
 
           if (!SBNAddShapeId(psSearch, nShapeId))
-            return FALSE;
+            return false;
         }
 
         pabyBinShape += 8;
@@ -668,7 +663,7 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
       free(psNode->pabyShapeDesc);
       psNode->pabyShapeDesc = SHPLIB_NULLPTR;
       hSBN->sHooks.Error("Inconsistent shape count for bin");
-      return FALSE;
+      return false;
     }
 
     psNode->bBBoxInit = true;
@@ -687,12 +682,12 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
       if (bSearchMinX <= bMid - 1 &&
           !SBNSearchDiskInternal(psSearch, nDepth + 1, nNodeId + 1, bNodeMinX,
                                  bNodeMinY, bMid - 1, bNodeMaxY)) {
-        return FALSE;
+        return false;
       }
       if (bSearchMaxX >= bMid &&
           !SBNSearchDiskInternal(psSearch, nDepth + 1, nNodeId, bMid, bNodeMinY,
                                  bNodeMaxX, bNodeMaxY)) {
-        return FALSE;
+        return false;
       }
     } else /* y split */
     {
@@ -701,17 +696,17 @@ static int SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
       if (bSearchMinY <= bMid - 1 &&
           !SBNSearchDiskInternal(psSearch, nDepth + 1, nNodeId + 1, bNodeMinX,
                                  bNodeMinY, bNodeMaxX, bMid - 1)) {
-        return FALSE;
+        return false;
       }
       if (bSearchMaxY >= bMid &&
           !SBNSearchDiskInternal(psSearch, nDepth + 1, nNodeId, bNodeMinX, bMid,
                                  bNodeMaxX, bNodeMaxY)) {
-        return FALSE;
+        return false;
       }
     }
   }
 
-  return TRUE;
+  return true;
 }
 
 /************************************************************************/
