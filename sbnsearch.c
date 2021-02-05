@@ -577,8 +577,7 @@ static bool SBNSearchDiskInternal(SearchStruct *psSearch, int nDepth,
       }
 
       uchar *pabyBinShape;
-      if (nDepth < CACHED_DEPTH_LIMIT &&
-          psNode->pabyShapeDesc != NULL) {
+      if (nDepth < CACHED_DEPTH_LIMIT && psNode->pabyShapeDesc != NULL) {
         pabyBinShape = psNode->pabyShapeDesc + nShapeCountAcc * 8;
       } else {
         pabyBinShape = psSearch->abyBinShape;

@@ -144,8 +144,7 @@ SHPTree SHPAPI_CALL1(*)
     int nMaxNodeCount = 1;
     int nShapeCount;
 
-    SHPGetInfo(hSHP, &nShapeCount, NULL, NULL,
-               NULL);
+    SHPGetInfo(hSHP, &nShapeCount, NULL, NULL, NULL);
     while (nMaxNodeCount * 4 < nShapeCount) {
       psTree->nMaxDepth += 1;
       nMaxNodeCount = nMaxNodeCount * 2;
@@ -186,8 +185,8 @@ SHPTree SHPAPI_CALL1(*)
   /*      function will have already set the bounds.                      */
   /* -------------------------------------------------------------------- */
   if (padfBoundsMin == NULL) {
-    SHPGetInfo(hSHP, NULL, NULL,
-               psTree->psRoot->adfBoundsMin, psTree->psRoot->adfBoundsMax);
+    SHPGetInfo(hSHP, NULL, NULL, psTree->psRoot->adfBoundsMin,
+               psTree->psRoot->adfBoundsMax);
   }
 
   /* -------------------------------------------------------------------- */
@@ -195,8 +194,7 @@ SHPTree SHPAPI_CALL1(*)
   /* -------------------------------------------------------------------- */
   if (hSHP != NULL) {
     int nShapeCount;
-    SHPGetInfo(hSHP, &nShapeCount, NULL, NULL,
-               NULL);
+    SHPGetInfo(hSHP, &nShapeCount, NULL, NULL, NULL);
 
     for (int iShape = 0; iShape < nShapeCount; iShape++) {
       SHPObject *psShape = SHPReadObject(hSHP, iShape);

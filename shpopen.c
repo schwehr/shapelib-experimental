@@ -542,8 +542,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   else
     pabyBuf = STATIC_CAST(uchar *, malloc(8 * MAX(1, psSHP->nRecords)));
 
-  if (psSHP->panRecOffset == NULL ||
-      psSHP->panRecSize == NULL ||
+  if (psSHP->panRecOffset == NULL || psSHP->panRecSize == NULL ||
       (!bLazySHXLoading && pabyBuf == NULL)) {
     char szErrorMsg[200];
 
@@ -1217,8 +1216,8 @@ SHPObject SHPAPI_CALL1(*)
 SHPObject SHPAPI_CALL1(*)
     SHPCreateSimpleObject(int nSHPType, int nVertices, const double *padfX,
                           const double *padfY, const double *padfZ) {
-  return (SHPCreateObject(nSHPType, -1, 0, NULL, NULL,
-                          nVertices, padfX, padfY, padfZ, NULL));
+  return (SHPCreateObject(nSHPType, -1, 0, NULL, NULL, nVertices, padfX, padfY,
+                          padfZ, NULL));
 }
 
 /************************************************************************/
@@ -1971,8 +1970,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
 
     if (psShape->padfX == NULL || psShape->padfY == NULL ||
         psShape->padfZ == NULL || psShape->padfM == NULL ||
-        psShape->panPartStart == NULL ||
-        psShape->panPartType == NULL) {
+        psShape->panPartStart == NULL || psShape->panPartType == NULL) {
       snprintf(szErrorMsg, sizeof(szErrorMsg),
                "Not enough memory to allocate requested memory (nPoints=%u, "
                "nParts=%u) for shape %d. "
