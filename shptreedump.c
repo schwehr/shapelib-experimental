@@ -335,9 +335,5 @@ int main(int argc, char **argv) {
 
   SHPClose(hSHP);
 
-#ifdef USE_DBMALLOC
-  malloc_dump(2);
-#endif
-
   exit(0);
 }

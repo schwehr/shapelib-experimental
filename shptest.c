@@ -255,9 +255,5 @@ int main(int argc, char **argv)
     exit(10);
   }
 
-#ifdef USE_DBMALLOC
-  malloc_dump(2);
-#endif
-
   exit(0);
 }
