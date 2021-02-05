@@ -83,15 +83,9 @@ CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 #define CPL_IGNORE_RET_VAL_INT(x) x
 #endif
 
-#ifdef __cplusplus
-#define STATIC_CAST(type, x) static_cast<type>(x)
-#define REINTERPRET_CAST(type, x) reinterpret_cast<type>(x)
-#define CONST_CAST(type, x) const_cast<type>(x)
-#else
 #define STATIC_CAST(type, x) ((type)(x))
 #define REINTERPRET_CAST(type, x) ((type)(x))
 #define CONST_CAST(type, x) ((type)(x))
-#endif
 
 /************************************************************************/
 /*                             SfRealloc()                              */

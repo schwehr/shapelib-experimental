@@ -58,15 +58,9 @@ SHP_CVSID("$Id$")
 
 #define CACHED_DEPTH_LIMIT 8
 
-#ifdef __cplusplus
-#define STATIC_CAST(type, x) static_cast<type>(x)
-#define REINTERPRET_CAST(type, x) reinterpret_cast<type>(x)
-#define CONST_CAST(type, x) const_cast<type>(x)
-#else
 #define STATIC_CAST(type, x) ((type)(x))
 #define REINTERPRET_CAST(type, x) ((type)(x))
 #define CONST_CAST(type, x) ((type)(x))
-#endif
 
 #define READ_MSB_INT(ptr)                                                      \
   STATIC_CAST(int, (((STATIC_CAST(unsigned, (ptr)[0])) << 24) |                \

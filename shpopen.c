@@ -93,11 +93,7 @@ typedef unsigned int int32;
 static bool bBigEndian;
 #endif
 
-#ifdef __cplusplus
-#define STATIC_CAST(type, x) static_cast<type>(x)
-#else
 #define STATIC_CAST(type, x) ((type)(x))
-#endif
 
 /************************************************************************/
 /*                              SwapWord()                              */
