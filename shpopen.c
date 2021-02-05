@@ -95,10 +95,8 @@ static bool bBigEndian;
 
 #ifdef __cplusplus
 #define STATIC_CAST(type, x) static_cast<type>(x)
-#define SHPLIB_NULLPTR nullptr
 #else
 #define STATIC_CAST(type, x) ((type)(x))
-#define SHPLIB_NULLPTR NULL
 #endif
 
 /************************************************************************/
@@ -124,7 +122,7 @@ static void SwapWord(int length, void *wordP) {
 /************************************************************************/
 
 static void *SfRealloc(void *pMem, int nNewSize) {
-  if (pMem == SHPLIB_NULLPTR)
+  if (pMem == NULL)
     return malloc(nNewSize);
   else
     return realloc(pMem, nNewSize);
@@ -140,7 +138,7 @@ static void *SfRealloc(void *pMem, int nNewSize) {
 void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
 
 {
-  if (psSHP->fpSHX == SHPLIB_NULLPTR) {
+  if (psSHP->fpSHX == NULL) {
     psSHP->sHooks.Error("SHPWriteHeader failed : SHX file is closed");
     return;
   }
@@ -247,7 +245,7 @@ void SHPAPI_CALL SHPWriteHeader(SHPHandle psSHP)
   /* -------------------------------------------------------------------- */
   int32 *panSHX =
       STATIC_CAST(int32 *, malloc(sizeof(int32) * 2 * psSHP->nRecords));
-  if (panSHX == SHPLIB_NULLPTR) {
+  if (panSHX == NULL) {
     psSHP->sHooks.Error("Failure allocatin panSHX");
     return;
   }
@@ -328,7 +326,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
       strcmp(pszAccess, "r+") == 0)
     pszAccess = "r+b";
   else {
-    bLazySHXLoading = strchr(pszAccess, 'l') != SHPLIB_NULLPTR;
+    bLazySHXLoading = strchr(pszAccess, 'l') != NULL;
     pszAccess = "rb";
   }
 
@@ -362,12 +360,12 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
   memcpy(pszFullname, pszLayer, nLenWithoutExtension);
   memcpy(pszFullname + nLenWithoutExtension, ".shp", 5);
   psSHP->fpSHP = psSHP->sHooks.FOpen(pszFullname, pszAccess);
-  if (psSHP->fpSHP == SHPLIB_NULLPTR) {
+  if (psSHP->fpSHP == NULL) {
     memcpy(pszFullname + nLenWithoutExtension, ".SHP", 5);
     psSHP->fpSHP = psSHP->sHooks.FOpen(pszFullname, pszAccess);
   }
 
-  if (psSHP->fpSHP == SHPLIB_NULLPTR) {
+  if (psSHP->fpSHP == NULL) {
     size_t nMessageLen = strlen(pszFullname) * 2 + 256;
     char *pszMessage = STATIC_CAST(char *, malloc(nMessageLen));
     pszFullname[nLenWithoutExtension] = 0;
@@ -379,17 +377,17 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     free(psSHP);
     free(pszFullname);
 
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   memcpy(pszFullname + nLenWithoutExtension, ".shx", 5);
   psSHP->fpSHX = psSHP->sHooks.FOpen(pszFullname, pszAccess);
-  if (psSHP->fpSHX == SHPLIB_NULLPTR) {
+  if (psSHP->fpSHX == NULL) {
     memcpy(pszFullname + nLenWithoutExtension, ".SHX", 5);
     psSHP->fpSHX = psSHP->sHooks.FOpen(pszFullname, pszAccess);
   }
 
-  if (psSHP->fpSHX == SHPLIB_NULLPTR) {
+  if (psSHP->fpSHX == NULL) {
     size_t nMessageLen = strlen(pszFullname) * 2 + 256;
     char *pszMessage = STATIC_CAST(char *, malloc(nMessageLen));
     pszFullname[nLenWithoutExtension] = 0;
@@ -404,7 +402,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     psSHP->sHooks.FClose(psSHP->fpSHP);
     free(psSHP);
     free(pszFullname);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   free(pszFullname);
@@ -420,7 +418,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     free(pabyBuf);
     free(psSHP);
 
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   psSHP->nFileSize = (STATIC_CAST(unsigned int, pabyBuf[24]) << 24) |
@@ -442,7 +440,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     free(pabyBuf);
     free(psSHP);
 
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   psSHP->nRecords = pabyBuf[27] | (pabyBuf[26] << 8) | (pabyBuf[25] << 16) |
@@ -465,7 +463,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     free(psSHP);
     free(pabyBuf);
 
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   /* If a lot of records are advertized, check that the file is big enough */
@@ -540,13 +538,13 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
       STATIC_CAST(unsigned int *,
                   malloc(sizeof(unsigned int) * MAX(1, psSHP->nMaxRecords)));
   if (bLazySHXLoading)
-    pabyBuf = SHPLIB_NULLPTR;
+    pabyBuf = NULL;
   else
     pabyBuf = STATIC_CAST(uchar *, malloc(8 * MAX(1, psSHP->nRecords)));
 
-  if (psSHP->panRecOffset == SHPLIB_NULLPTR ||
-      psSHP->panRecSize == SHPLIB_NULLPTR ||
-      (!bLazySHXLoading && pabyBuf == SHPLIB_NULLPTR)) {
+  if (psSHP->panRecOffset == NULL ||
+      psSHP->panRecSize == NULL ||
+      (!bLazySHXLoading && pabyBuf == NULL)) {
     char szErrorMsg[200];
 
     snprintf(szErrorMsg, sizeof(szErrorMsg),
@@ -564,7 +562,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     if (pabyBuf)
       free(pabyBuf);
     free(psSHP);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   if (bLazySHXLoading) {
@@ -594,13 +592,13 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
     free(pabyBuf);
     free(psSHP);
 
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   /* In read-only mode, we can close the SHX now */
   if (strcmp(pszAccess, "rb") == 0) {
     psSHP->sHooks.FClose(psSHP->fpSHX);
-    psSHP->fpSHX = SHPLIB_NULLPTR;
+    psSHP->fpSHX = NULL;
   }
 
   for (int i = 0; i < psSHP->nRecords; i++) {
@@ -622,7 +620,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
       psSHP->sHooks.Error(str);
       SHPClose(psSHP);
       free(pabyBuf);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     if (nLength > STATIC_CAST(unsigned int, INT_MAX / 2 - 4)) {
       char str[128];
@@ -632,7 +630,7 @@ SHPHandle SHPAPI_CALL SHPOpenLL(const char *pszLayer, const char *pszAccess,
       psSHP->sHooks.Error(str);
       SHPClose(psSHP);
       free(pabyBuf);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     psSHP->panRecOffset[i] = nOffset * 2;
     psSHP->panRecSize[i] = nLength * 2;
@@ -661,7 +659,7 @@ SHPHandle SHPAPI_CALL SHPOpenLLEx(const char *pszLayer, const char *pszAccess,
     }
   }
 
-  return SHPLIB_NULLPTR;
+  return NULL;
 }
 
 /************************************************************************/
@@ -717,12 +715,12 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
   memcpy(pszFullname, pszLayer, nLenWithoutExtension);
   memcpy(pszFullname + nLenWithoutExtension, ".shp", 5);
   SAFile fpSHP = psHooks->FOpen(pszFullname, pszAccess);
-  if (fpSHP == SHPLIB_NULLPTR) {
+  if (fpSHP == NULL) {
     memcpy(pszFullname + nLenWithoutExtension, ".SHP", 5);
     fpSHP = psHooks->FOpen(pszFullname, pszAccess);
   }
 
-  if (fpSHP == SHPLIB_NULLPTR) {
+  if (fpSHP == NULL) {
     size_t nMessageLen = strlen(pszFullname) * 2 + 256;
     char *pszMessage = STATIC_CAST(char *, malloc(nMessageLen));
 
@@ -761,7 +759,7 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
   memcpy(pszFullname + nLenWithoutExtension, ".shx", 5);
   const char pszSHXAccess[] = "w+b";
   SAFile fpSHX = psHooks->FOpen(pszFullname, pszSHXAccess);
-  if (fpSHX == SHPLIB_NULLPTR) {
+  if (fpSHX == NULL) {
     size_t nMessageLen = strlen(pszFullname) * 2 + 256;
     char *pszMessage = STATIC_CAST(char *, malloc(nMessageLen));
     pszFullname[nLenWithoutExtension] = 0;
@@ -847,7 +845,7 @@ int SHPAPI_CALL SHPRestoreSHX(const char *pszLayer, const char *pszAccess,
 /************************************************************************/
 
 void SHPAPI_CALL SHPClose(SHPHandle psSHP) {
-  if (psSHP == SHPLIB_NULLPTR)
+  if (psSHP == NULL)
     return;
 
   // Update the header if we have modified anything.
@@ -858,18 +856,18 @@ void SHPAPI_CALL SHPClose(SHPHandle psSHP) {
   free(psSHP->panRecOffset);
   free(psSHP->panRecSize);
 
-  if (psSHP->fpSHX != SHPLIB_NULLPTR)
+  if (psSHP->fpSHX != NULL)
     psSHP->sHooks.FClose(psSHP->fpSHX);
   psSHP->sHooks.FClose(psSHP->fpSHP);
 
-  if (psSHP->pabyRec != SHPLIB_NULLPTR) {
+  if (psSHP->pabyRec != NULL) {
     free(psSHP->pabyRec);
   }
 
-  if (psSHP->pabyObjectBuf != SHPLIB_NULLPTR) {
+  if (psSHP->pabyObjectBuf != NULL) {
     free(psSHP->pabyObjectBuf);
   }
-  if (psSHP->psCachedObject != SHPLIB_NULLPTR) {
+  if (psSHP->psCachedObject != NULL) {
     free(psSHP->psCachedObject);
   }
 
@@ -888,10 +886,10 @@ void SHPAPI_CALL SHPClose(SHPHandle psSHP) {
 // TODO(schwehr): bool bFastMode
 void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, bool bFastMode) {
   if (bFastMode) {
-    if (hSHP->psCachedObject == SHPLIB_NULLPTR) {
+    if (hSHP->psCachedObject == NULL) {
       hSHP->psCachedObject =
           STATIC_CAST(SHPObject *, calloc(1, sizeof(SHPObject)));
-      assert(hSHP->psCachedObject != SHPLIB_NULLPTR);
+      assert(hSHP->psCachedObject != NULL);
     }
   }
 
@@ -906,19 +904,19 @@ void SHPAPI_CALL SHPSetFastModeReadObject(SHPHandle hSHP, bool bFastMode) {
 
 void SHPAPI_CALL SHPGetInfo(SHPHandle psSHP, int *pnEntities, int *pnShapeType,
                             double *padfMinBound, double *padfMaxBound) {
-  if (psSHP == SHPLIB_NULLPTR)
+  if (psSHP == NULL)
     return;
 
-  if (pnEntities != SHPLIB_NULLPTR)
+  if (pnEntities != NULL)
     *pnEntities = psSHP->nRecords;
 
-  if (pnShapeType != SHPLIB_NULLPTR)
+  if (pnShapeType != NULL)
     *pnShapeType = psSHP->nShapeType;
 
   for (int i = 0; i < 4; i++) {
-    if (padfMinBound != SHPLIB_NULLPTR)
+    if (padfMinBound != NULL)
       padfMinBound[i] = psSHP->adBoundsMin[i];
-    if (padfMaxBound != SHPLIB_NULLPTR)
+    if (padfMaxBound != NULL)
       padfMaxBound[i] = psSHP->adBoundsMax[i];
   }
 }
@@ -964,7 +962,7 @@ SHPHandle SHPAPI_CALL SHPCreateLL(const char *pszLayer, int nShapeType,
   memcpy(pszFullname, pszLayer, nLenWithoutExtension);
   memcpy(pszFullname + nLenWithoutExtension, ".shp", 5);
   SAFile fpSHP = psHooks->FOpen(pszFullname, "wb");
-  if (fpSHP == SHPLIB_NULLPTR) {
+  if (fpSHP == NULL) {
     char szErrorMsg[200];
     snprintf(szErrorMsg, sizeof(szErrorMsg), "Failed to create file %s: %s",
              pszFullname, strerror(errno));
@@ -975,7 +973,7 @@ SHPHandle SHPAPI_CALL SHPCreateLL(const char *pszLayer, int nShapeType,
 
   memcpy(pszFullname + nLenWithoutExtension, ".shx", 5);
   SAFile fpSHX = psHooks->FOpen(pszFullname, "wb");
-  if (fpSHX == SHPLIB_NULLPTR) {
+  if (fpSHX == NULL) {
     char szErrorMsg[200];
     snprintf(szErrorMsg, sizeof(szErrorMsg), "Failed to create file %s: %s",
              pszFullname, strerror(errno));
@@ -984,7 +982,7 @@ SHPHandle SHPAPI_CALL SHPCreateLL(const char *pszLayer, int nShapeType,
   }
 
   free(pszFullname);
-  pszFullname = SHPLIB_NULLPTR;
+  pszFullname = NULL;
 
   // Prepare header block for .shp file.
   uchar abyHeader[100];
@@ -1056,7 +1054,7 @@ error:
     psHooks->FClose(fpSHP);
   if (fpSHX)
     psHooks->FClose(fpSHX);
-  return SHPLIB_NULLPTR;
+  return NULL;
 }
 
 /************************************************************************/
@@ -1164,10 +1162,10 @@ SHPObject SHPAPI_CALL1(*)
     psObject->panPartType[0] = SHPP_RING;
 
     for (int i = 0; i < nParts; i++) {
-      if (panPartStart != SHPLIB_NULLPTR)
+      if (panPartStart != NULL)
         psObject->panPartStart[i] = panPartStart[i];
 
-      if (panPartType != SHPLIB_NULLPTR)
+      if (panPartType != NULL)
         psObject->panPartType[i] = panPartType[i];
       else
         psObject->panPartType[i] = SHPP_RING;
@@ -1190,13 +1188,13 @@ SHPObject SHPAPI_CALL1(*)
     psObject->padfM = STATIC_CAST(
         double *,
         padfM &&bHasM ? malloc(nSize) : calloc(sizeof(double), nVertices));
-    if (padfX != SHPLIB_NULLPTR)
+    if (padfX != NULL)
       memcpy(psObject->padfX, padfX, nSize);
-    if (padfY != SHPLIB_NULLPTR)
+    if (padfY != NULL)
       memcpy(psObject->padfY, padfY, nSize);
-    if (padfZ != SHPLIB_NULLPTR && bHasZ)
+    if (padfZ != NULL && bHasZ)
       memcpy(psObject->padfZ, padfZ, nSize);
-    if (padfM != SHPLIB_NULLPTR && bHasM) {
+    if (padfM != NULL && bHasM) {
       memcpy(psObject->padfM, padfM, nSize);
       psObject->bMeasureIsUsed = true;
     }
@@ -1219,8 +1217,8 @@ SHPObject SHPAPI_CALL1(*)
 SHPObject SHPAPI_CALL1(*)
     SHPCreateSimpleObject(int nSHPType, int nVertices, const double *padfX,
                           const double *padfY, const double *padfZ) {
-  return (SHPCreateObject(nSHPType, -1, 0, SHPLIB_NULLPTR, SHPLIB_NULLPTR,
-                          nVertices, padfX, padfY, padfZ, SHPLIB_NULLPTR));
+  return (SHPCreateObject(nSHPType, -1, 0, NULL, NULL,
+                          nVertices, padfX, padfY, padfZ, NULL));
 }
 
 /************************************************************************/
@@ -1257,14 +1255,14 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
     panRecOffsetNew = STATIC_CAST(
         unsigned int *,
         SfRealloc(psSHP->panRecOffset, sizeof(unsigned int) * nNewMaxRecords));
-    if (panRecOffsetNew == SHPLIB_NULLPTR)
+    if (panRecOffsetNew == NULL)
       return -1;
     psSHP->panRecOffset = panRecOffsetNew;
 
     panRecSizeNew = STATIC_CAST(
         unsigned int *,
         SfRealloc(psSHP->panRecSize, sizeof(unsigned int) * nNewMaxRecords));
-    if (panRecSizeNew == SHPLIB_NULLPTR)
+    if (panRecSizeNew == NULL)
       return -1;
     psSHP->panRecSize = panRecSizeNew;
 
@@ -1275,7 +1273,7 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
   uchar *pabyRec =
       STATIC_CAST(uchar *, malloc(psObject->nVertices * 4 * sizeof(double) +
                                   psObject->nParts * 8 + 128));
-  if (pabyRec == SHPLIB_NULLPTR)
+  if (pabyRec == NULL)
     return -1;
 
   unsigned int nRecordSize = 0;
@@ -1622,12 +1620,12 @@ int SHPAPI_CALL SHPWriteObject(SHPHandle psSHP, int nShapeId,
 /************************************************************************/
 
 static void *SHPAllocBuffer(unsigned char **pBuffer, int nSize) {
-  if (pBuffer == SHPLIB_NULLPTR)
+  if (pBuffer == NULL)
     return calloc(1, nSize);
 
   unsigned char *pRet = *pBuffer;
-  if (pRet == SHPLIB_NULLPTR)
-    return SHPLIB_NULLPTR;
+  if (pRet == NULL)
+    return NULL;
 
   (*pBuffer) += nSize;
   return pRet;
@@ -1646,7 +1644,7 @@ static unsigned char *SHPReallocObjectBufIfNecessary(SHPHandle psSHP,
   if (nObjectBufSize > psSHP->nObjectBufSize) {
     pBuffer = STATIC_CAST(unsigned char *,
                           realloc(psSHP->pabyObjectBuf, nObjectBufSize));
-    if (pBuffer != SHPLIB_NULLPTR) {
+    if (pBuffer != NULL) {
       psSHP->pabyObjectBuf = pBuffer;
       psSHP->nObjectBufSize = nObjectBufSize;
     }
@@ -1665,10 +1663,10 @@ static unsigned char *SHPReallocObjectBufIfNecessary(SHPHandle psSHP,
 SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
   // Validate the record/entity number.
   if (hEntity < 0 || hEntity >= psSHP->nRecords)
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   // Read offset/length from SHX loading if necessary.
-  if (psSHP->panRecOffset[hEntity] == 0 && psSHP->fpSHX != SHPLIB_NULLPTR) {
+  if (psSHP->panRecOffset[hEntity] == 0 && psSHP->fpSHX != NULL) {
     unsigned int nLength;
     unsigned int nOffset;
 
@@ -1683,7 +1681,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       str[sizeof(str) - 1] = '\0';
 
       psSHP->sHooks.Error(str);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     if (!bBigEndian)
       SwapWord(4, &nOffset);
@@ -1696,7 +1694,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       str[sizeof(str) - 1] = '\0';
 
       psSHP->sHooks.Error(str);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     if (nLength > STATIC_CAST(unsigned int, INT_MAX / 2 - 4)) {
       char str[128];
@@ -1704,7 +1702,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       str[sizeof(str) - 1] = '\0';
 
       psSHP->sHooks.Error(str);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     psSHP->panRecOffset[hEntity] = nOffset * 2;
@@ -1751,13 +1749,13 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
         str[sizeof(str) - 1] = '\0';
 
         psSHP->sHooks.Error(str);
-        return SHPLIB_NULLPTR;
+        return NULL;
       }
     }
 
     uchar *pabyRecNew =
         STATIC_CAST(uchar *, SfRealloc(psSHP->pabyRec, nNewBufSize));
-    if (pabyRecNew == SHPLIB_NULLPTR) {
+    if (pabyRecNew == NULL) {
       snprintf(
           szErrorMsg, sizeof(szErrorMsg),
           "Not enough memory to allocate requested memory (nNewBufSize=%d). "
@@ -1765,7 +1763,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
           nNewBufSize);
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     /* Only set new buffer size after successful alloc */
@@ -1774,8 +1772,8 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
   }
 
   /* In case we were not able to reallocate the buffer on a previous step */
-  if (psSHP->pabyRec == SHPLIB_NULLPTR) {
-    return SHPLIB_NULLPTR;
+  if (psSHP->pabyRec == NULL) {
+    return NULL;
   }
 
   // Read the record.
@@ -1791,7 +1789,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     str[sizeof(str) - 1] = '\0';
 
     psSHP->sHooks.Error(str);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   const int nBytesRead = STATIC_CAST(
@@ -1820,7 +1818,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       str[sizeof(str) - 1] = '\0';
 
       psSHP->sHooks.Error(str);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
   } else if (nBytesRead != nEntitySize) {
     // TODO(mloskot): Consider detailed diagnostics of shape file,
@@ -1833,7 +1831,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     str[sizeof(str) - 1] = '\0';
 
     psSHP->sHooks.Error(str);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   if (8 + 4 > nEntitySize) {
@@ -1842,7 +1840,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
              nEntitySize);
     szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
     psSHP->sHooks.Error(szErrorMsg);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   int nSHPType;
@@ -1858,7 +1856,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     if (psSHP->psCachedObject->bFastModeReadObject) {
       psSHP->sHooks.Error("Invalid read pattern in fast read mode. "
                           "SHPDestroyObject() should be called.");
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     psShape = psSHP->psCachedObject;
@@ -1882,7 +1880,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     //	Get the X/Y bounds.
     memcpy(&(psShape->dfXMin), psSHP->pabyRec + 8 + 4, 8);
@@ -1920,7 +1918,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     /* With the previous checks on nPoints and nParts, */
@@ -1942,11 +1940,11 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
-    unsigned char *pBuffer = SHPLIB_NULLPTR;
-    unsigned char **ppBuffer = SHPLIB_NULLPTR;
+    unsigned char *pBuffer = NULL;
+    unsigned char **ppBuffer = NULL;
 
     if (psShape->bFastModeReadObject) {
       int nObjectBufSize =
@@ -1971,10 +1969,10 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     psShape->panPartType =
         STATIC_CAST(int *, SHPAllocBuffer(ppBuffer, nParts * sizeof(int)));
 
-    if (psShape->padfX == SHPLIB_NULLPTR || psShape->padfY == SHPLIB_NULLPTR ||
-        psShape->padfZ == SHPLIB_NULLPTR || psShape->padfM == SHPLIB_NULLPTR ||
-        psShape->panPartStart == SHPLIB_NULLPTR ||
-        psShape->panPartType == SHPLIB_NULLPTR) {
+    if (psShape->padfX == NULL || psShape->padfY == NULL ||
+        psShape->padfZ == NULL || psShape->padfM == NULL ||
+        psShape->panPartStart == NULL ||
+        psShape->panPartType == NULL) {
       snprintf(szErrorMsg, sizeof(szErrorMsg),
                "Not enough memory to allocate requested memory (nPoints=%u, "
                "nParts=%u) for shape %d. "
@@ -1983,7 +1981,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     for (int i = 0; STATIC_CAST(int32, i) < nParts; i++)
@@ -2007,7 +2005,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
         szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
         psSHP->sHooks.Error(szErrorMsg);
         SHPDestroyObject(psShape);
-        return SHPLIB_NULLPTR;
+        return NULL;
       }
       if (i > 0 && psShape->panPartStart[i] <= psShape->panPartStart[i - 1]) {
         snprintf(szErrorMsg, sizeof(szErrorMsg),
@@ -2018,7 +2016,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
         szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
         psSHP->sHooks.Error(szErrorMsg);
         SHPDestroyObject(psShape);
-        return SHPLIB_NULLPTR;
+        return NULL;
       }
     }
 
@@ -2074,7 +2072,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
 
       nOffset += 16 + 8 * nPoints;
     } else if (psShape->bFastModeReadObject) {
-      psShape->padfZ = SHPLIB_NULLPTR;
+      psShape->padfZ = NULL;
     }
 
     /* -------------------------------------------------------------------- */
@@ -2099,7 +2097,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       }
       psShape->bMeasureIsUsed = true;
     } else if (psShape->bFastModeReadObject) {
-      psShape->padfM = SHPLIB_NULLPTR;
+      psShape->padfM = NULL;
     }
   }
 
@@ -2116,7 +2114,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     int32 nPoints;
     memcpy(&nPoints, psSHP->pabyRec + 44, 4);
@@ -2132,7 +2130,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     int nRequiredSize = 48 + nPoints * 16;
@@ -2147,11 +2145,11 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
-    unsigned char *pBuffer = SHPLIB_NULLPTR;
-    unsigned char **ppBuffer = SHPLIB_NULLPTR;
+    unsigned char *pBuffer = NULL;
+    unsigned char **ppBuffer = NULL;
 
     if (psShape->bFastModeReadObject) {
       int nObjectBufSize = 4 * sizeof(double) * nPoints;
@@ -2170,8 +2168,8 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
     psShape->padfM = STATIC_CAST(
         double *, SHPAllocBuffer(ppBuffer, sizeof(double) * nPoints));
 
-    if (psShape->padfX == SHPLIB_NULLPTR || psShape->padfY == SHPLIB_NULLPTR ||
-        psShape->padfZ == SHPLIB_NULLPTR || psShape->padfM == SHPLIB_NULLPTR) {
+    if (psShape->padfX == NULL || psShape->padfY == NULL ||
+        psShape->padfZ == NULL || psShape->padfM == NULL) {
       snprintf(szErrorMsg, sizeof(szErrorMsg),
                "Not enough memory to allocate requested memory (nPoints=%u) "
                "for shape %d. "
@@ -2180,7 +2178,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
 
     for (int i = 0; STATIC_CAST(int32, i) < nPoints; i++) {
@@ -2232,7 +2230,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
 
       nOffset += 16 + 8 * nPoints;
     } else if (psShape->bFastModeReadObject)
-      psShape->padfZ = SHPLIB_NULLPTR;
+      psShape->padfZ = NULL;
 
     /* -------------------------------------------------------------------- */
     /*      If we have a M measure value, then read it now.  We assume      */
@@ -2256,7 +2254,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       }
       psShape->bMeasureIsUsed = true;
     } else if (psShape->bFastModeReadObject)
-      psShape->padfM = SHPLIB_NULLPTR;
+      psShape->padfM = NULL;
   }
 
   /* ==================================================================== */
@@ -2287,7 +2285,7 @@ SHPObject SHPAPI_CALL1(*) SHPReadObject(SHPHandle psSHP, int hEntity) {
       szErrorMsg[sizeof(szErrorMsg) - 1] = '\0';
       psSHP->sHooks.Error(szErrorMsg);
       SHPDestroyObject(psShape);
-      return SHPLIB_NULLPTR;
+      return NULL;
     }
     memcpy(psShape->padfX, psSHP->pabyRec + 12, 8);
     memcpy(psShape->padfY, psSHP->pabyRec + 20, 8);
@@ -2419,7 +2417,7 @@ const char SHPAPI_CALL1(*) SHPPartTypeName(int nPartType) {
 /************************************************************************/
 
 void SHPAPI_CALL SHPDestroyObject(SHPObject *psShape) {
-  if (psShape == SHPLIB_NULLPTR)
+  if (psShape == NULL)
     return;
 
   if (psShape->bFastModeReadObject) {
@@ -2427,18 +2425,18 @@ void SHPAPI_CALL SHPDestroyObject(SHPObject *psShape) {
     return;
   }
 
-  if (psShape->padfX != SHPLIB_NULLPTR)
+  if (psShape->padfX != NULL)
     free(psShape->padfX);
-  if (psShape->padfY != SHPLIB_NULLPTR)
+  if (psShape->padfY != NULL)
     free(psShape->padfY);
-  if (psShape->padfZ != SHPLIB_NULLPTR)
+  if (psShape->padfZ != NULL)
     free(psShape->padfZ);
-  if (psShape->padfM != SHPLIB_NULLPTR)
+  if (psShape->padfM != NULL)
     free(psShape->padfM);
 
-  if (psShape->panPartStart != SHPLIB_NULLPTR)
+  if (psShape->panPartStart != NULL)
     free(psShape->panPartStart);
-  if (psShape->panPartType != SHPLIB_NULLPTR)
+  if (psShape->panPartType != NULL)
     free(psShape->panPartType);
 
   free(psShape);

@@ -74,7 +74,7 @@ SHP_CVSID("$Id$")
 
 #define HEADER_RECORD_TERMINATOR 0x0D
 
-/* See http://www.manmrk.net/tutorials/database/xbase/dbf.html */
+// See http://www.manmrk.net/tutorials/database/xbase/dbf.html
 #define END_OF_FILE_CHARACTER 0x1A
 
 #ifdef USE_CPL
@@ -87,12 +87,10 @@ CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 #define STATIC_CAST(type, x) static_cast<type>(x)
 #define REINTERPRET_CAST(type, x) reinterpret_cast<type>(x)
 #define CONST_CAST(type, x) const_cast<type>(x)
-#define SHPLIB_NULLPTR nullptr
 #else
 #define STATIC_CAST(type, x) ((type)(x))
 #define REINTERPRET_CAST(type, x) ((type)(x))
 #define CONST_CAST(type, x) ((type)(x))
-#define SHPLIB_NULLPTR NULL
 #endif
 
 /************************************************************************/
@@ -103,7 +101,7 @@ CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 /************************************************************************/
 
 static void *SfRealloc(void *pMem, int nNewSize) {
-  if (pMem == SHPLIB_NULLPTR)
+  if (pMem == NULL)
     return malloc(nNewSize);
   else
     return realloc(pMem, nNewSize);
@@ -352,7 +350,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
   if (strcmp(pszAccess, "r") != 0 && strcmp(pszAccess, "r+") != 0 &&
       strcmp(pszAccess, "rb") != 0 && strcmp(pszAccess, "rb+") != 0 &&
       strcmp(pszAccess, "r+b") != 0)
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   if (strcmp(pszAccess, "r") == 0)
     pszAccess = "rb";
@@ -373,25 +371,25 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
   psDBF->fp = psHooks->FOpen(pszFullname, pszAccess);
   memcpy(&(psDBF->sHooks), psHooks, sizeof(SAHooks));
 
-  if (psDBF->fp == SHPLIB_NULLPTR) {
+  if (psDBF->fp == NULL) {
     memcpy(pszFullname + nLenWithoutExtension, ".DBF", 5);
     psDBF->fp = psDBF->sHooks.FOpen(pszFullname, pszAccess);
   }
 
   memcpy(pszFullname + nLenWithoutExtension, ".cpg", 5);
   SAFile pfCPG = psHooks->FOpen(pszFullname, "r");
-  if (pfCPG == SHPLIB_NULLPTR) {
+  if (pfCPG == NULL) {
     memcpy(pszFullname + nLenWithoutExtension, ".CPG", 5);
     pfCPG = psHooks->FOpen(pszFullname, "r");
   }
 
   free(pszFullname);
 
-  if (psDBF->fp == SHPLIB_NULLPTR) {
+  if (psDBF->fp == NULL) {
     free(psDBF);
     if (pfCPG)
       psHooks->FClose(pfCPG);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   psDBF->bNoHeader = false;
@@ -409,7 +407,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
       psDBF->sHooks.FClose(pfCPG);
     free(pabyBuf);
     free(psDBF);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   DBFSetLastModifiedDate(psDBF, pabyBuf[1], pabyBuf[2], pabyBuf[3]);
@@ -428,7 +426,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
       psDBF->sHooks.FClose(pfCPG);
     free(pabyBuf);
     free(psDBF);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   const int nFields = (nHeadLen - XBASE_FILEHDR_SZ) / XBASE_FLDHDR_SZ;
@@ -441,7 +439,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
   /*  Figure out the code page from the LDID and CPG                      */
   /* -------------------------------------------------------------------- */
 
-  psDBF->pszCodePage = SHPLIB_NULLPTR;
+  psDBF->pszCodePage = NULL;
   if (pfCPG) {
     size_t n;
     memset(pabyBuf, 0, nBufSize);
@@ -454,7 +452,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
     }
     psDBF->sHooks.FClose(pfCPG);
   }
-  if (psDBF->pszCodePage == SHPLIB_NULLPTR && pabyBuf[29] != 0) {
+  if (psDBF->pszCodePage == NULL && pabyBuf[29] != 0) {
     snprintf(REINTERPRET_CAST(char *, pabyBuf), nBufSize, "LDID/%d",
              psDBF->iLanguageDriver);
     psDBF->pszCodePage = STATIC_CAST(
@@ -477,7 +475,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
     free(psDBF->pszCurrentRecord);
     free(psDBF->pszCodePage);
     free(psDBF);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   psDBF->panFieldOffset = STATIC_CAST(int *, malloc(sizeof(int) * nFields));
@@ -522,7 +520,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
                                     psDBF->panFieldSize[psDBF->nFields - 1] >
                                 psDBF->nRecordLength) {
     DBFClose(psDBF);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   DBFSetWriteEndOfFileChar(psDBF, true);
@@ -537,7 +535,7 @@ DBFHandle SHPAPI_CALL DBFOpenLL(const char *pszFilename, const char *pszAccess,
 /************************************************************************/
 
 void SHPAPI_CALL DBFClose(DBFHandle psDBF) {
-  if (psDBF == SHPLIB_NULLPTR)
+  if (psDBF == NULL)
     return;
 
   /* -------------------------------------------------------------------- */
@@ -560,14 +558,14 @@ void SHPAPI_CALL DBFClose(DBFHandle psDBF) {
   /* -------------------------------------------------------------------- */
   psDBF->sHooks.FClose(psDBF->fp);
 
-  if (psDBF->panFieldOffset != SHPLIB_NULLPTR) {
+  if (psDBF->panFieldOffset != NULL) {
     free(psDBF->panFieldOffset);
     free(psDBF->panFieldSize);
     free(psDBF->panFieldDecimals);
     free(psDBF->pachFieldType);
   }
 
-  if (psDBF->pszWorkField != SHPLIB_NULLPTR)
+  if (psDBF->pszWorkField != NULL)
     free(psDBF->pszWorkField);
 
   free(psDBF->pszHeader);
@@ -623,9 +621,9 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
   /*      Create the file.                                                */
   /* -------------------------------------------------------------------- */
   SAFile fp = psHooks->FOpen(pszFullname, "wb");
-  if (fp == SHPLIB_NULLPTR) {
+  if (fp == NULL) {
     free(pszFullname);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   char chZero = '\0';
@@ -633,14 +631,14 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
   psHooks->FClose(fp);
 
   fp = psHooks->FOpen(pszFullname, "rb+");
-  if (fp == SHPLIB_NULLPTR) {
+  if (fp == NULL) {
     free(pszFullname);
-    return SHPLIB_NULLPTR;
+    return NULL;
   }
 
   memcpy(pszFullname + nLenWithoutExtension, ".cpg", 5);
   int ldid = -1;
-  if (pszCodePage != SHPLIB_NULLPTR) {
+  if (pszCodePage != NULL) {
     if (strncmp(pszCodePage, "LDID/", 5) == 0) {
       ldid = atoi(pszCodePage + 5);
       if (ldid > 255)
@@ -655,7 +653,7 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
       psHooks->FClose(fpCPG);
     }
   }
-  if (pszCodePage == SHPLIB_NULLPTR || ldid >= 0) {
+  if (pszCodePage == NULL || ldid >= 0) {
     psHooks->Remove(pszFullname);
   }
 
@@ -672,20 +670,20 @@ DBFHandle SHPAPI_CALL DBFCreateLL(const char *pszFilename,
   psDBF->nHeaderLength =
       XBASE_FILEHDR_SZ + 1; /* + 1 for HEADER_RECORD_TERMINATOR */
 
-  psDBF->panFieldOffset = SHPLIB_NULLPTR;
-  psDBF->panFieldSize = SHPLIB_NULLPTR;
-  psDBF->panFieldDecimals = SHPLIB_NULLPTR;
-  psDBF->pachFieldType = SHPLIB_NULLPTR;
-  psDBF->pszHeader = SHPLIB_NULLPTR;
+  psDBF->panFieldOffset = NULL;
+  psDBF->panFieldSize = NULL;
+  psDBF->panFieldDecimals = NULL;
+  psDBF->pachFieldType = NULL;
+  psDBF->pszHeader = NULL;
 
   psDBF->nCurrentRecord = -1;
   psDBF->bCurrentRecordModified = false;
-  psDBF->pszCurrentRecord = SHPLIB_NULLPTR;
+  psDBF->pszCurrentRecord = NULL;
 
   psDBF->bNoHeader = true;
 
   psDBF->iLanguageDriver = ldid > 0 ? ldid : 0;
-  psDBF->pszCodePage = SHPLIB_NULLPTR;
+  psDBF->pszCodePage = NULL;
   if (pszCodePage) {
     psDBF->pszCodePage = STATIC_CAST(char *, malloc(strlen(pszCodePage) + 1));
     strcpy(psDBF->pszCodePage, pszCodePage);
@@ -916,16 +914,16 @@ static void *DBFReadAttribute(DBFHandle psDBF, int hEntity, int iField,
   /*      Verify selection.                                               */
   /* -------------------------------------------------------------------- */
   if (hEntity < 0 || hEntity >= psDBF->nRecords)
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   if (iField < 0 || iField >= psDBF->nFields)
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   /* -------------------------------------------------------------------- */
   /*	Have we read the record?					*/
   /* -------------------------------------------------------------------- */
   if (!DBFLoadRecord(psDBF, hEntity))
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   unsigned char *pabyRec =
       REINTERPRET_CAST(unsigned char *, psDBF->pszCurrentRecord);
@@ -935,7 +933,7 @@ static void *DBFReadAttribute(DBFHandle psDBF, int hEntity, int iField,
   /* -------------------------------------------------------------------- */
   if (psDBF->panFieldSize[iField] >= psDBF->nWorkFieldLength) {
     psDBF->nWorkFieldLength = psDBF->panFieldSize[iField] + 100;
-    if (psDBF->pszWorkField == SHPLIB_NULLPTR)
+    if (psDBF->pszWorkField == NULL)
       psDBF->pszWorkField =
           STATIC_CAST(char *, malloc(psDBF->nWorkFieldLength));
     else
@@ -1000,7 +998,7 @@ int SHPAPI_CALL DBFReadIntegerAttribute(DBFHandle psDBF, int iRecord,
   int *pnValue =
       STATIC_CAST(int *, DBFReadAttribute(psDBF, iRecord, iField, 'I'));
 
-  if (pnValue == SHPLIB_NULLPTR)
+  if (pnValue == NULL)
     return 0;
   else
     return *pnValue;
@@ -1017,7 +1015,7 @@ double SHPAPI_CALL DBFReadDoubleAttribute(DBFHandle psDBF, int iRecord,
   double *pdValue =
       STATIC_CAST(double *, DBFReadAttribute(psDBF, iRecord, iField, 'N'));
 
-  if (pdValue == SHPLIB_NULLPTR)
+  if (pdValue == NULL)
     return 0.0;
   else
     return *pdValue;
@@ -1055,7 +1053,7 @@ const char SHPAPI_CALL1(*)
 
 static bool DBFIsValueNULL(char chType, const char *pszValue) {
 
-  if (pszValue == SHPLIB_NULLPTR)
+  if (pszValue == NULL)
     return true;
 
   switch (chType) {
@@ -1100,7 +1098,7 @@ static bool DBFIsValueNULL(char chType, const char *pszValue) {
 bool SHPAPI_CALL DBFIsAttributeNULL(DBFHandle psDBF, int iRecord, int iField) {
   const char *pszValue = DBFReadStringAttribute(psDBF, iRecord, iField);
 
-  if (pszValue == SHPLIB_NULLPTR)
+  if (pszValue == NULL)
     return true;
 
   return DBFIsValueNULL(psDBF->pachFieldType[iField], pszValue);
@@ -1136,13 +1134,13 @@ DBFFieldType SHPAPI_CALL DBFGetFieldInfo(DBFHandle psDBF, int iField,
   if (iField < 0 || iField >= psDBF->nFields)
     return (FTInvalid);
 
-  if (pnWidth != SHPLIB_NULLPTR)
+  if (pnWidth != NULL)
     *pnWidth = psDBF->panFieldSize[iField];
 
-  if (pnDecimals != SHPLIB_NULLPTR)
+  if (pnDecimals != NULL)
     *pnDecimals = psDBF->panFieldDecimals[iField];
 
-  if (pszFieldName != SHPLIB_NULLPTR) {
+  if (pszFieldName != NULL) {
     strncpy(pszFieldName,
             STATIC_CAST(char *, psDBF->pszHeader) + iField * XBASE_FLDHDR_SZ,
             XBASE_FLDNAME_LEN_READ);
@@ -1219,7 +1217,7 @@ static bool DBFWriteAttribute(DBFHandle psDBF, int hEntity, int iField,
   /*                                                                      */
   /*      Contributed by Jim Matthews.                                    */
   /* -------------------------------------------------------------------- */
-  if (pValue == SHPLIB_NULLPTR) {
+  if (pValue == NULL) {
     memset(pabyRec + psDBF->panFieldOffset[iField],
            DBFGetNullCharacter(psDBF->pachFieldType[iField]),
            psDBF->panFieldSize[iField]);
@@ -1394,7 +1392,7 @@ int SHPAPI_CALL DBFWriteStringAttribute(DBFHandle psDBF, int iRecord,
 
 int SHPAPI_CALL DBFWriteNULLAttribute(DBFHandle psDBF, int iRecord,
                                       int iField) {
-  return (DBFWriteAttribute(psDBF, iRecord, iField, SHPLIB_NULLPTR));
+  return (DBFWriteAttribute(psDBF, iRecord, iField, NULL));
 }
 
 /************************************************************************/
@@ -1466,10 +1464,10 @@ bool SHPAPI_CALL DBFWriteTuple(DBFHandle psDBF, int hEntity, void *pRawTuple) {
 
 const char SHPAPI_CALL1(*) DBFReadTuple(DBFHandle psDBF, int hEntity) {
   if (hEntity < 0 || hEntity >= psDBF->nRecords)
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   if (!DBFLoadRecord(psDBF, hEntity))
-    return SHPLIB_NULLPTR;
+    return NULL;
 
   return STATIC_CAST(const char *, psDBF->pszCurrentRecord);
 }
@@ -1482,8 +1480,8 @@ const char SHPAPI_CALL1(*) DBFReadTuple(DBFHandle psDBF, int hEntity) {
 
 DBFHandle SHPAPI_CALL DBFCloneEmpty(DBFHandle psDBF, const char *pszFilename) {
   DBFHandle newDBF = DBFCreateEx(pszFilename, psDBF->pszCodePage);
-  if (newDBF == SHPLIB_NULLPTR)
-    return SHPLIB_NULLPTR;
+  if (newDBF == NULL)
+    return NULL;
 
   newDBF->nFields = psDBF->nFields;
   newDBF->nRecordLength = psDBF->nRecordLength;
@@ -1558,7 +1556,7 @@ int SHPAPI_CALL DBFGetFieldIndex(DBFHandle psDBF, const char *pszFieldName)
   char name[XBASE_FLDNAME_LEN_READ + 1];
 
   for (int i = 0; i < DBFGetFieldCount(psDBF); i++) {
-    DBFGetFieldInfo(psDBF, i, name, SHPLIB_NULLPTR, SHPLIB_NULLPTR);
+    DBFGetFieldInfo(psDBF, i, name, NULL, NULL);
     if (!STRCASECMP(pszFieldName, name))
       return (i);
   }
@@ -1627,8 +1625,8 @@ bool SHPAPI_CALL DBFMarkRecordDeleted(DBFHandle psDBF, int iShape,
 /************************************************************************/
 
 const char SHPAPI_CALL1(*) DBFGetCodePage(DBFHandle psDBF) {
-  if (psDBF == SHPLIB_NULLPTR)
-    return SHPLIB_NULLPTR;
+  if (psDBF == NULL)
+    return NULL;
   return psDBF->pszCodePage;
 }
 
